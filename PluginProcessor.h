@@ -63,7 +63,7 @@ private:
     double sampleRate;
     
     std::vector<double> gainRamp;
-    double gainRampDurationSeconds;
+    double gainRampDurationSeconds = 1;
     double gainRampDurationSecondsMax = 5.0;
     int gainRampNumSamples;
     std::vector<double> prepareMasterGainRamp(double sampleRate, double gainRampDurationSecondsMax);
@@ -72,11 +72,13 @@ private:
     double envelopeAttackTime;
     double envelopeDecayTime;
     std::vector<double> signalEnvelope;
-    void calculateRCEnvelope(auto channelDataReadPtr);
+    template<typename dataType>
+    void calculateRCEnvelope(dataType* channelDataReadPtr);
     
-    double impulseThreshold;
+    double impulseThreshold = 0.04;
     int impulseIndex;
     int detectImpulseFromEnvelope(double f_threshold);
     
-    void applyGainRamp();
+    template<typename dataType>
+    void applyGainRamp(dataType* bufferWritePointer, int f_impulseIndex, double f_gainRampDurationSeconds);
 };

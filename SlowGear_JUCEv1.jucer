@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="hvtVQd" name="SlowGear_JUCEv1" projectType="audioplug" useAppConfig="0"
-              addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1">
+              addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1"
+              cppLanguageStandard="17">
   <MAINGROUP id="hjs1pW" name="SlowGear_JUCEv1">
     <GROUP id="{6ECCB705-0373-DFEF-58F0-E1253905A97B}" name="Source">
       <FILE id="wNyfoL" name="PluginProcessor.cpp" compile="1" resource="0"

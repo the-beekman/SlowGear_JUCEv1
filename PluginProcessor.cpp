@@ -168,13 +168,13 @@ void SlowGear_JUCEv1AudioProcessor::processBlock (juce::AudioBuffer<float>& buff
     // interleaved by keeping the same state.
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
-        auto* channelDataWrite = buffer.getWritePointer (channel);
+        auto* channelDataWrite = buffer.getWritePointer(channel);
         auto* channelDataRead = buffer.getReadPointer(channel);
         
         calculateRCEnvelope(channelDataRead);
-        impulseIndex = detectImpulseFromEnvelope();
+        impulseIndex = detectImpulseFromEnvelope(impulseThreshold);
+        applyGainRamp(channelDataWrite, impulseIndex, gainRampDurationSeconds);
         
-
     }
 }
 
@@ -227,7 +227,8 @@ std::vector<double> SlowGear_JUCEv1AudioProcessor::prepareMasterGainRamp(double 
     return f_gainRamp;
 }
 
-void SlowGear_JUCEv1AudioProcessor::calculateRCEnvelope(auto channelDataReadPtr)
+template<typename dataType>
+void SlowGear_JUCEv1AudioProcessor::calculateRCEnvelope(dataType* channelDataReadPtr)
 {
     //Process (Adapted from Pirkle's book):
     // 1) Take ABS of the sample. We could also square it here to get the R/MS envelope, but we're not going to.
@@ -288,7 +289,100 @@ int SlowGear_JUCEv1AudioProcessor::detectImpulseFromEnvelope(double f_threshold)
         }
     }//end for
     
-    return -1; //if it gets here, the envelope is never above the threshold
+    return -1; //if it gets here, the envelope is never above the threshold OR there is a swell in progress that started in a previous frame
+}
+
+template<typename dataType>
+void SlowGear_JUCEv1AudioProcessor::applyGainRamp(dataType* bufferWritePointer, int f_impulseIndex, double f_gainRampDurationSeconds)
+{
+    //For now we will calculate the gain ramp sample-by-sample.
+    static int rampIndex = 0;
+    
+    bool impulseInFrame = ( f_impulseIndex >= 0 );
+    bool previousFramePartOfSwell = !( rampIndex <= 0 || rampIndex >= gainRampNumSamples ); //If rampIndex is zero or underflow, or if rampIndex overflows, then it's not being swelled. Mind the negation ! operator
+    
+    double gainValue;
+    // CASES:
+    // 1) Impulse in frame, previous frame not part of swell
+    if (impulseInFrame && !previousFramePartOfSwell)
+    {
+       //We want all the samples up to impulseIndex to be unaffected, then start applying the ramp starting from the sample's impulseIndex. We also reset the gain ramp index.
+        rampIndex = 0;
+        for (int bufferIndex = f_impulseIndex; bufferIndex < samplesPerBlock; ++bufferIndex)
+        {
+            if (rampIndex < gainRampNumSamples)
+            {
+                gainValue = 1-std::exp( (-4.6*rampIndex) / (f_gainRampDurationSeconds*sampleRate) );
+                bufferWritePointer[bufferIndex] = gainValue * bufferWritePointer[bufferIndex];
+                ++rampIndex;
+            }
+//            else
+//            {
+//                //Multiply by 1
+//                bufferWritePointer[bufferIndex] = bufferWritePointer[bufferIndex];
+//            }
+            
+        } //end for loop
+    } //end if (impulseInFrame && !previousFramePartOfSwell)
+    
+    // 2) Impulse in frame, previous frame is part of swell
+    else if (impulseInFrame && previousFramePartOfSwell)
+    {
+        //We want to continue the previous frame's swell, then restart a new swell at impulseIndex
+        for ( int bufferIndex = 0; bufferIndex < f_impulseIndex; ++bufferIndex)
+        {
+            if (rampIndex < gainRampNumSamples)
+            {
+                gainValue = 1-std::exp( (-4.6*rampIndex) / (f_gainRampDurationSeconds*sampleRate) );
+                bufferWritePointer[bufferIndex] = gainValue * bufferWritePointer[bufferIndex];
+                ++rampIndex;
+            }
+            //else multiply by 1
+        } //end for loop (1st section)
+        
+        //Now we are at impulseIndex. The following is a copy-paste of case 1
+        rampIndex = 0;
+        for (int bufferIndex = f_impulseIndex; bufferIndex < samplesPerBlock; ++bufferIndex)
+        {
+            if (rampIndex < gainRampNumSamples)
+            {
+                gainValue = 1-std::exp( (-4.6*rampIndex) / (f_gainRampDurationSeconds*sampleRate) );
+                bufferWritePointer[bufferIndex] = gainValue * bufferWritePointer[bufferIndex];
+                ++rampIndex;
+            } //end if
+            //else multiply by 1
+        } //end for loop (2nd section)
+    } //end else if (impulseInFrame && previousFramePartOfSwell)
+    
+    // 3) Impulse not in frame, previous frame not part of swell
+    else if (!impulseInFrame && !previousFramePartOfSwell)
+    {
+        //Do nothing to the audio. Ensure the rampIndex is 0.
+        rampIndex = 0;
+    }
+    
+    // 4) Impulse not in frame, previous frame is part of swell
+    else if (!impulseInFrame && previousFramePartOfSwell)
+    {
+        // Continue the previous swell through the entire duration of the frame
+        
+        for ( int bufferIndex = 0; bufferIndex < samplesPerBlock; ++bufferIndex)
+        {
+            if (rampIndex < gainRampNumSamples)
+            {
+                gainValue = 1-std::exp( (-4.6*rampIndex) / (f_gainRampDurationSeconds*sampleRate) );
+                bufferWritePointer[bufferIndex] = gainValue * bufferWritePointer[bufferIndex];
+                ++rampIndex;
+            }
+            //else multiply by 1
+        } //end for loop (1st section)
+        
+    }
+    
+    else
+    {
+        DBG("Error in applyGainRamp: Reached unexpected case of impulseInFrame and previousFramePartOfSwell");
+    }
 }
 
 //==============================================================================
