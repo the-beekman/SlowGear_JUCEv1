@@ -17,9 +17,9 @@ SlowGear_JUCEv1AudioProcessor::SlowGear_JUCEv1AudioProcessor()
      : AudioProcessor (BusesProperties()
                      #if ! JucePlugin_IsMidiEffect
                       #if ! JucePlugin_IsSynth
-                       .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
+                       .withInput  ("Input",  juce::AudioChannelSet::mono(), true)
                       #endif
-                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
+                       .withOutput ("Output", juce::AudioChannelSet::mono(), true)
                      #endif
                        )
 #endif
@@ -108,7 +108,7 @@ void SlowGear_JUCEv1AudioProcessor::prepareToPlay (double sampleRate, int sample
     signalEnvelope.resize(samplesPerBlock);
     
     //define the 0-63% attack/decay times for the envelope follower
-    //Are these taylor expansions?
+    
     envelopeAttackTime = std::exp(-1.0 / (sampleRate*envelopeAttackTimeMS*0.001) );
     envelopeDecayTime = std::exp(-1.0 / (sampleRate*envelopeDecayTimeMS*0.001) );
 }
@@ -249,6 +249,7 @@ void SlowGear_JUCEv1AudioProcessor::calculateRCEnvelope(dataType* channelDataRea
     //Now the rest of the samples
     for(int i = 1; i < samplesPerBlock; ++i)
     {
+        //Are these taylor expansions?
         currentSample = std::abs( channelDataReadPtr[i] );
         if (currentSample > signalEnvelope.at(i-1) )
         {

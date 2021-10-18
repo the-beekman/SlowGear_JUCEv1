@@ -75,7 +75,7 @@ private:
     template<typename dataType>
     void calculateRCEnvelope(dataType* channelDataReadPtr);
     
-    double impulseThreshold = 0.04;
+    double impulseThreshold = 0.02;
     int impulseIndex;
     int detectImpulseFromEnvelope(double f_threshold);
     
