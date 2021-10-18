@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="hvtVQd" name="SlowGear_JUCEv1" projectType="audioplug" useAppConfig="0"
+              addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1"
+              cppLanguageStandard="17">
+  <MAINGROUP id="hjs1pW" name="SlowGear_JUCEv1">
+    <GROUP id="{6ECCB705-0373-DFEF-58F0-E1253905A97B}" name="Source">
+      <FILE id="wNyfoL" name="PluginProcessor.cpp" compile="1" resource="0"
+            file="Source/PluginProcessor.cpp"/>
+      <FILE id="qkbNQ9" name="PluginProcessor.h" compile="0" resource="0"
+            file="Source/PluginProcessor.h"/>
+      <FILE id="LxHD3J" name="PluginEditor.cpp" compile="1" resource="0"
+            file="Source/PluginEditor.cpp"/>
+      <FILE id="ekRHKI" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
+    </GROUP>
+  </MAINGROUP>
+  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
+  <EXPORTFORMATS>
+    <VS2019 targetFolder="Builds/VisualStudio2019">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="SlowGear_JUCEv1"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="SlowGear_JUCEv1"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="../../cpp_libraries/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../../cpp_libraries/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../cpp_libraries/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../../cpp_libraries/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../../cpp_libraries/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../../cpp_libraries/JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="../../cpp_libraries/JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../cpp_libraries/JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../../cpp_libraries/JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../cpp_libraries/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../cpp_libraries/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../cpp_libraries/JUCE/modules"/>
+      </MODULEPATHS>
+    </VS2019>
+    <XCODE_MAC targetFolder="Builds/MacOSX">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="SlowGear_JUCEv1"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="SlowGear_JUCEv1"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="../../cpp_libraries/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../../cpp_libraries/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../cpp_libraries/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../../cpp_libraries/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../../cpp_libraries/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../../cpp_libraries/JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="../../cpp_libraries/JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../cpp_libraries/JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../../cpp_libraries/JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../cpp_libraries/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../cpp_libraries/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../cpp_libraries/JUCE/modules"/>
+      </MODULEPATHS>
+    </XCODE_MAC>
+  </EXPORTFORMATS>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+  </MODULES>
+  <LIVE_SETTINGS>
+    <OSX/>
+  </LIVE_SETTINGS>
+</JUCERPROJECT>

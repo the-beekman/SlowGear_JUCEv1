@@ -97,6 +97,20 @@ void SlowGear_JUCEv1AudioProcessor::prepareToPlay (double sampleRate, int sample
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
+    
+    this->sampleRate = sampleRate;
+    this->samplesPerBlock = samplesPerBlock;
+    
+    gainRamp = prepareMasterGainRamp(sampleRate, this->gainRampDurationSecondsMax);
+
+    //reset the signalEnvelope to have the same size as samplesPerBlock
+    signalEnvelope.clear(); //clearing the envelope may be unnecessary
+    signalEnvelope.resize(samplesPerBlock);
+    
+    //define the 0-63% attack/decay times for the envelope follower
+    //Are these taylor expansions?
+    envelopeAttackTime = std::exp(-1.0 / (sampleRate*envelopeAttackTimeMS*0.001) );
+    envelopeDecayTime = std::exp(-1.0 / (sampleRate*envelopeDecayTimeMS*0.001) );
 }
 
 void SlowGear_JUCEv1AudioProcessor::releaseResources()
@@ -154,9 +168,13 @@ void SlowGear_JUCEv1AudioProcessor::processBlock (juce::AudioBuffer<float>& buff
     // interleaved by keeping the same state.
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
-        auto* channelData = buffer.getWritePointer (channel);
-
-        // ..do something to the data...
+        auto* channelDataWrite = buffer.getWritePointer(channel);
+        auto* channelDataRead = buffer.getReadPointer(channel);
+        
+        calculateRCEnvelope(channelDataRead);
+        impulseIndex = detectImpulseFromEnvelope(impulseThreshold);
+        applyGainRamp(channelDataWrite, impulseIndex, gainRampDurationSeconds);
+        
     }
 }
 
@@ -183,6 +201,188 @@ void SlowGear_JUCEv1AudioProcessor::setStateInformation (const void* data, int s
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+}
+
+//==============================================================================
+// Custom functions
+//==============================================================================
+
+std::vector<double> SlowGear_JUCEv1AudioProcessor::prepareMasterGainRamp(double f_sampleRate, double f_gainRampDurationSecondsMax)
+{
+    //We interpolate between samples of the master gain ramp to get the gain value for faster swell times (compared to the maximum).
+    //prefix f_ denotes the variable has local function scope
+    
+    
+    //weird stuff here - gainRampNumSamples is the CLASS variable, while sampleRate and the duration is the FUNCTION ARGUMENTS. Justification at-the-time is that I want to guaruntee that INDEPENDENT VARIABLES sampleRate and gainRampDurationSecondsMax are set correctly, since gainRampNumSamples and vector gainRamp are DEPENDENT VARIABLES on them.
+    gainRampNumSamples = static_cast<int>(f_sampleRate*f_gainRampDurationSecondsMax);
+    
+    std::vector<double> f_gainRamp;
+    f_gainRamp.resize(gainRampNumSamples);
+    
+    for (int i = 0; i < gainRampNumSamples; ++i)
+    {
+        f_gainRamp.at(i) = 1.0-exp(-4.6*i/gainRampNumSamples);
+    }
+    
+    return f_gainRamp;
+}
+
+template<typename dataType>
+void SlowGear_JUCEv1AudioProcessor::calculateRCEnvelope(dataType* channelDataReadPtr)
+{
+    //Process (Adapted from Pirkle's book):
+    // 1) Take ABS of the sample. We could also square it here to get the R/MS envelope, but we're not going to.
+    // 2) Compare with previous envelope value. If the new sample is greater, apply attackTime. Else apply decayTime.
+    // 3) Make sure the result is non-negative
+    
+    //First sample is handled differently because we're comparing to the end of the previous envelope (which was preserved because the signalEnvelope is a private class variable)
+    float currentSample = std::abs( channelDataReadPtr[0] );
+    if (currentSample > signalEnvelope.at(samplesPerBlock-1) )
+    {
+        signalEnvelope.at(0) = envelopeAttackTime * (signalEnvelope.at(samplesPerBlock-1) - currentSample ) + currentSample;
+    }
+    else
+    {
+        signalEnvelope.at(0) = envelopeDecayTime * (signalEnvelope.at(samplesPerBlock-1) - currentSample ) + currentSample;
+    }
+    
+    //Now the rest of the samples
+    for(int i = 1; i < samplesPerBlock; ++i)
+    {
+        currentSample = std::abs( channelDataReadPtr[i] );
+        if (currentSample > signalEnvelope.at(i-1) )
+        {
+            signalEnvelope.at(i) = envelopeAttackTime * (signalEnvelope.at(i-1) - currentSample ) + currentSample;
+        }
+        else
+        {
+            signalEnvelope.at(i) = envelopeDecayTime * (signalEnvelope.at(i-1) - currentSample ) + currentSample;
+        }
+        
+        //make sure the envelope is non-negative
+        if (signalEnvelope.at(i) < 0)
+        {
+            signalEnvelope.at(i) = 0;
+        }
+    } //end sample for loop
+    
+} //end calculateRCEnvelope
+
+int SlowGear_JUCEv1AudioProcessor::detectImpulseFromEnvelope(double f_threshold)
+{
+    //f_threshold is used instead of the class variable to ensure it remains at the same value for the entire processing time, regardless of the user possibly changing the threshold in the middle of this function's runtime
+    
+    static bool swellInProgress = false; //static so that the state persists between frames
+    //we cannot make swellInProgress a class variable that the applyGainRamp function also uses because we do not detect the impulse and apply the gain ramp within the same function. With the current function flow, we will only know swellInProgress state at the END of the buffer if it was a class variable
+    
+    for (int i = 0; i < samplesPerBlock; ++i)
+    {
+        if ( !swellInProgress && (signalEnvelope.at(i) >= f_threshold) )
+        {
+            swellInProgress = true;
+            return i; //The index where the envelope went over the threshold
+        }
+        if ( signalEnvelope.at(i) < f_threshold )
+        {
+            //if it goes below the threshold, reset the swell state
+            swellInProgress = false;
+        }
+    }//end for
+    
+    return -1; //if it gets here, the envelope is never above the threshold OR there is a swell in progress that started in a previous frame
+}
+
+template<typename dataType>
+void SlowGear_JUCEv1AudioProcessor::applyGainRamp(dataType* bufferWritePointer, int f_impulseIndex, double f_gainRampDurationSeconds)
+{
+    //For now we will calculate the gain ramp sample-by-sample.
+    static int rampIndex = 0;
+    
+    bool impulseInFrame = ( f_impulseIndex >= 0 );
+    bool previousFramePartOfSwell = !( rampIndex <= 0 || rampIndex >= gainRampNumSamples ); //If rampIndex is zero or underflow, or if rampIndex overflows, then it's not being swelled. Mind the negation ! operator
+    
+    double gainValue;
+    // CASES:
+    // 1) Impulse in frame, previous frame not part of swell
+    if (impulseInFrame && !previousFramePartOfSwell)
+    {
+       //We want all the samples up to impulseIndex to be unaffected, then start applying the ramp starting from the sample's impulseIndex. We also reset the gain ramp index.
+        rampIndex = 0;
+        for (int bufferIndex = f_impulseIndex; bufferIndex < samplesPerBlock; ++bufferIndex)
+        {
+            if (rampIndex < gainRampNumSamples)
+            {
+                gainValue = 1-std::exp( (-4.6*rampIndex) / (f_gainRampDurationSeconds*sampleRate) );
+                bufferWritePointer[bufferIndex] = gainValue * bufferWritePointer[bufferIndex];
+                ++rampIndex;
+            }
+//            else
+//            {
+//                //Multiply by 1
+//                bufferWritePointer[bufferIndex] = bufferWritePointer[bufferIndex];
+//            }
+            
+        } //end for loop
+    } //end if (impulseInFrame && !previousFramePartOfSwell)
+    
+    // 2) Impulse in frame, previous frame is part of swell
+    else if (impulseInFrame && previousFramePartOfSwell)
+    {
+        //We want to continue the previous frame's swell, then restart a new swell at impulseIndex
+        for ( int bufferIndex = 0; bufferIndex < f_impulseIndex; ++bufferIndex)
+        {
+            if (rampIndex < gainRampNumSamples)
+            {
+                gainValue = 1-std::exp( (-4.6*rampIndex) / (f_gainRampDurationSeconds*sampleRate) );
+                bufferWritePointer[bufferIndex] = gainValue * bufferWritePointer[bufferIndex];
+                ++rampIndex;
+            }
+            //else multiply by 1
+        } //end for loop (1st section)
+        
+        //Now we are at impulseIndex. The following is a copy-paste of case 1
+        rampIndex = 0;
+        for (int bufferIndex = f_impulseIndex; bufferIndex < samplesPerBlock; ++bufferIndex)
+        {
+            if (rampIndex < gainRampNumSamples)
+            {
+                gainValue = 1-std::exp( (-4.6*rampIndex) / (f_gainRampDurationSeconds*sampleRate) );
+                bufferWritePointer[bufferIndex] = gainValue * bufferWritePointer[bufferIndex];
+                ++rampIndex;
+            } //end if
+            //else multiply by 1
+        } //end for loop (2nd section)
+    } //end else if (impulseInFrame && previousFramePartOfSwell)
+    
+    // 3) Impulse not in frame, previous frame not part of swell
+    else if (!impulseInFrame && !previousFramePartOfSwell)
+    {
+        //Do nothing to the audio. Ensure the rampIndex is 0.
+        rampIndex = 0;
+    }
+    
+    // 4) Impulse not in frame, previous frame is part of swell
+    else if (!impulseInFrame && previousFramePartOfSwell)
+    {
+        // Continue the previous swell through the entire duration of the frame
+        
+        for ( int bufferIndex = 0; bufferIndex < samplesPerBlock; ++bufferIndex)
+        {
+            if (rampIndex < gainRampNumSamples)
+            {
+                gainValue = 1-std::exp( (-4.6*rampIndex) / (f_gainRampDurationSeconds*sampleRate) );
+                bufferWritePointer[bufferIndex] = gainValue * bufferWritePointer[bufferIndex];
+                ++rampIndex;
+            }
+            //else multiply by 1
+        } //end for loop (1st section)
+        
+    }
+    
+    else
+    {
+        DBG("Error in applyGainRamp: Reached unexpected case of impulseInFrame and previousFramePartOfSwell");
+    }
 }
 
 //==============================================================================
