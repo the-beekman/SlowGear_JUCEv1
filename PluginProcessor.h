@@ -58,4 +58,19 @@ public:
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SlowGear_JUCEv1AudioProcessor)
+    
+    int samplesPerBlock;
+    double sampleRate;
+    
+    std::vector<double> gainRamp;
+    double gainRampDurationSeconds;
+    double gainRampDurationSecondsMax = 5.0;
+    int gainRampNumSamples;
+    std::vector<double> prepareMasterGainRamp(double sampleRate, double gainRampDurationSecondsMax);
+    
+    double envelopeAttackTimeMS = 0.1, envelopeDecayTimeMS = 10;
+    double envelopeAttackTime;
+    double envelopeDecayTime;
+    std::vector<double> signalEnvelope;
+    void calculateRCEnvelope(auto channelDataReadPtr);
 };

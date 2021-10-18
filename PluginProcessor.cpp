@@ -97,6 +97,20 @@ void SlowGear_JUCEv1AudioProcessor::prepareToPlay (double sampleRate, int sample
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
+    
+    this->sampleRate = sampleRate;
+    this->samplesPerBlock = samplesPerBlock;
+    
+    gainRamp = prepareMasterGainRamp(sampleRate, this->gainRampDurationSecondsMax);
+
+    //reset the signalEnvelope to have the same size as samplesPerBlock
+    signalEnvelope.clear(); //clearing the envelope may be unnecessary
+    signalEnvelope.resize(samplesPerBlock);
+    
+    //define the 0-63% attack/decay times for the envelope follower
+    //Are these taylor expansions?
+    envelopeAttackTime = std::exp(-1.0 / (sampleRate*envelopeAttackTimeMS*0.001) );
+    envelopeDecayTime = std::exp(-1.0 / (sampleRate*envelopeDecayTimeMS*0.001) );
 }
 
 void SlowGear_JUCEv1AudioProcessor::releaseResources()
@@ -154,9 +168,13 @@ void SlowGear_JUCEv1AudioProcessor::processBlock (juce::AudioBuffer<float>& buff
     // interleaved by keeping the same state.
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
-        auto* channelData = buffer.getWritePointer (channel);
+        auto* channelDataWrite = buffer.getWritePointer (channel);
+        auto* channelDataRead = buffer.getReadPointer(channel);
+        
+        calculateRCEnvelope(channelDataRead);
+        detectImpulseFromEnvelope();
+        
 
-        // ..do something to the data...
     }
 }
 
@@ -184,6 +202,70 @@ void SlowGear_JUCEv1AudioProcessor::setStateInformation (const void* data, int s
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
 }
+
+//==============================================================================
+// Custom functions
+//==============================================================================
+
+std::vector<double> SlowGear_JUCEv1AudioProcessor::prepareMasterGainRamp(double f_sampleRate, double f_gainRampDurationSecondsMax)
+{
+    //We interpolate between samples of the master gain ramp to get the gain value for faster swell times (compared to the maximum).
+    //prefix f_ denotes the variable has local function scope
+    
+    
+    //weird stuff here - gainRampNumSamples is the CLASS variable, while sampleRate and the duration is the FUNCTION ARGUMENTS. Justification at-the-time is that I want to guaruntee that INDEPENDENT VARIABLES sampleRate and gainRampDurationSecondsMax are set correctly, since gainRampNumSamples and vector gainRamp are DEPENDENT VARIABLES on them.
+    gainRampNumSamples = static_cast<int>(f_sampleRate*f_gainRampDurationSecondsMax);
+    
+    std::vector<double> f_gainRamp;
+    f_gainRamp.resize(gainRampNumSamples);
+    
+    for (int i = 0; i < gainRampNumSamples; ++i)
+    {
+        f_gainRamp.at(i) = 1.0-exp(-4.6*i/gainRampNumSamples);
+    }
+    
+    return f_gainRamp;
+}
+
+void SlowGear_JUCEv1AudioProcessor::calculateRCEnvelope(auto channelDataReadPtr)
+{
+    //Process (Adapted from Pirkle's book):
+    // 1) Take ABS of the sample. We could also square it here to get the R/MS envelope, but we're not going to.
+    // 2) Compare with previous envelope value. If the new sample is greater, apply attackTime. Else apply decayTime.
+    // 3) Make sure the result is non-negative
+    
+    //First sample is handled differently because we're comparing to the end of the previous envelope (which was preserved because the signalEnvelope is a private class variable)
+    float currentSample = std::abs( channelDataReadPtr[0] );
+    if (currentSample > signalEnvelope.at(samplesPerBlock-1) )
+    {
+        signalEnvelope.at(0) = envelopeAttackTime * (signalEnvelope.at(samplesPerBlock-1) - currentSample ) + currentSample;
+    }
+    else
+    {
+        signalEnvelope.at(0) = envelopeDecayTime * (signalEnvelope.at(samplesPerBlock-1) - currentSample ) + currentSample;
+    }
+    
+    //Now the rest of the samples
+    for(int i = 1; i < samplesPerBlock; ++i)
+    {
+        currentSample = std::abs( channelDataReadPtr[i] );
+        if (currentSample > signalEnvelope.at(i-1) )
+        {
+            signalEnvelope.at(i) = envelopeAttackTime * (signalEnvelope.at(i-1) - currentSample ) + currentSample;
+        }
+        else
+        {
+            signalEnvelope.at(i) = envelopeDecayTime * (signalEnvelope.at(i-1) - currentSample ) + currentSample;
+        }
+        
+        //make sure the envelope is non-negative
+        if (signalEnvelope.at(i) < 0)
+        {
+            signalEnvelope.at(i) = 0;
+        }
+    } //end sample for loop
+    
+} //end calculateRCEnvelope
 
 //==============================================================================
 // This creates new instances of the plugin..
