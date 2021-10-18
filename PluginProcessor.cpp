@@ -172,7 +172,7 @@ void SlowGear_JUCEv1AudioProcessor::processBlock (juce::AudioBuffer<float>& buff
         auto* channelDataRead = buffer.getReadPointer(channel);
         
         calculateRCEnvelope(channelDataRead);
-        detectImpulseFromEnvelope();
+        impulseIndex = detectImpulseFromEnvelope();
         
 
     }
@@ -266,6 +266,30 @@ void SlowGear_JUCEv1AudioProcessor::calculateRCEnvelope(auto channelDataReadPtr)
     } //end sample for loop
     
 } //end calculateRCEnvelope
+
+int SlowGear_JUCEv1AudioProcessor::detectImpulseFromEnvelope(double f_threshold)
+{
+    //f_threshold is used instead of the class variable to ensure it remains at the same value for the entire processing time, regardless of the user possibly changing the threshold in the middle of this function's runtime
+    
+    static bool swellInProgress = false; //static so that the state persists between frames
+    //we cannot make swellInProgress a class variable that the applyGainRamp function also uses because we do not detect the impulse and apply the gain ramp within the same function. With the current function flow, we will only know swellInProgress state at the END of the buffer if it was a class variable
+    
+    for (int i = 0; i < samplesPerBlock; ++i)
+    {
+        if ( !swellInProgress && (signalEnvelope.at(i) >= f_threshold) )
+        {
+            swellInProgress = true;
+            return i; //The index where the envelope went over the threshold
+        }
+        if ( signalEnvelope.at(i) < f_threshold )
+        {
+            //if it goes below the threshold, reset the swell state
+            swellInProgress = false;
+        }
+    }//end for
+    
+    return -1; //if it gets here, the envelope is never above the threshold
+}
 
 //==============================================================================
 // This creates new instances of the plugin..

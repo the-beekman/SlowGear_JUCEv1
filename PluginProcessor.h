@@ -73,4 +73,10 @@ private:
     double envelopeDecayTime;
     std::vector<double> signalEnvelope;
     void calculateRCEnvelope(auto channelDataReadPtr);
+    
+    double impulseThreshold;
+    int impulseIndex;
+    int detectImpulseFromEnvelope(double f_threshold);
+    
+    void applyGainRamp();
 };
