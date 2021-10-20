@@ -101,6 +101,7 @@ void SlowGear_JUCEv1AudioProcessor::prepareToPlay (double sampleRate, int sample
     this->sampleRate = sampleRate;
     this->samplesPerBlock = samplesPerBlock;
     
+    
     gainRamp = prepareMasterGainRamp(sampleRate, this->gainRampDurationSecondsMax);
 
     //reset the signalEnvelope to have the same size as samplesPerBlock
@@ -186,7 +187,8 @@ bool SlowGear_JUCEv1AudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* SlowGear_JUCEv1AudioProcessor::createEditor()
 {
-    return new SlowGear_JUCEv1AudioProcessorEditor (*this);
+    //return new SlowGear_JUCEv1AudioProcessorEditor (*this);
+    return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================
@@ -206,6 +208,46 @@ void SlowGear_JUCEv1AudioProcessor::setStateInformation (const void* data, int s
 //==============================================================================
 // Custom functions
 //==============================================================================
+
+juce::AudioProcessorValueTreeState::ParameterLayout SlowGear_JUCEv1AudioProcessor::createParameterLayout()
+{
+    /* PARAMETERS:
+     * Threshold: The envelope threshold to activate the swell
+     * Swell Time: The time it takes the swell to go from 0% to 99%
+     * Envelope Decay Time: The 0-68% fall time of the envelope follower. This would be set by a trimpot that is not accessible from the outside in an actual Slow Gear
+     */
+    juce::AudioProcessorValueTreeState::ParameterLayout parameterLayout;
+    
+   
+    
+    //This wants std::unique_ptr<Items> items
+    //There is no juce::AudioParameterDouble
+    parameterLayout.add(std::make_unique<juce::AudioParameterFloat>(
+        "Threshold dB",//const String &parameterID,
+        "Threshold dB",//const String &parameterName,
+        juce::NormalisableRange<float>(-60.f, 0.f, 0.5f, 1.f),//NormalisableRange<float> normalisableRange(rangeStart, rangeEnd, intervalValue, skewFactor)
+            //The skew factor is log(0.5)/log( (midpoint-min)/(max-min) ). Since this is a dB slider already in logarithmic units, we don't need to skew
+        -34.f//float defaultValue
+        ) );
+    parameterLayout.add(std::make_unique<juce::AudioParameterFloat>(
+        "Swell Time",//const String &parameterID,
+        "Swell Time",//const String &parameterName,
+        juce::NormalisableRange<float>(0.1f, gainRampDurationSecondsMax, 0.1f, 1.f),
+        1.f//float defaultValue
+        ) );
+    
+    //This is a risky parameter. High values are less likely to react correctly to closely-timed notes. Low values are more likely to cause the envelope to go below-and-above the threshold in the same frame, causing low volume glitches.
+    //10 is a good value from the testing
+    parameterLayout.add(std::make_unique<juce::AudioParameterFloat>(
+        "Envelope Decay Time",//const String &parameterID,
+        "Envelope Decay Time",//const String &parameterName,
+        juce::NormalisableRange<float>(1.f, 20.f, 0.1f, 2.2698f),//NormalisableRange<float> normalisableRange(rangeStart, rangeEnd, intervalValue, skewFactor)
+            //This skew factor sets the midpoint to be 15ms
+        10.f//float defaultValue
+        ) );
+    
+    return parameterLayout;
+}
 
 std::vector<double> SlowGear_JUCEv1AudioProcessor::prepareMasterGainRamp(double f_sampleRate, double f_gainRampDurationSecondsMax)
 {

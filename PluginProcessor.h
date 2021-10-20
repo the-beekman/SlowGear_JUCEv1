@@ -54,7 +54,22 @@ public:
     //==============================================================================
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
+    
+    const float gainRampDurationSecondsMax = 5.0;
 
+    
+    //==============================================================================
+    //How Matkat Music's example parameter layout was made
+    juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
+    juce::AudioProcessorValueTreeState apvts
+    {
+        *this, //AudioProcessor &processorToConnectTo,
+        nullptr, //UndoManager *undoManagerToUse,
+        "Parameters", //const Identifier &valueTreeType,
+        createParameterLayout() //ParameterLayout parameterLayout
+            //This function is called first, before we get to the private section. All variables used in createParameterLayout MUST be initialized BEFORE this line
+    };
+    
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SlowGear_JUCEv1AudioProcessor)
@@ -63,8 +78,8 @@ private:
     double sampleRate;
     
     std::vector<double> gainRamp;
-    double gainRampDurationSeconds = 1;
-    double gainRampDurationSecondsMax = 5.0;
+    float gainRampDurationSeconds = 1;
+    
     int gainRampNumSamples;
     std::vector<double> prepareMasterGainRamp(double sampleRate, double gainRampDurationSecondsMax);
     
