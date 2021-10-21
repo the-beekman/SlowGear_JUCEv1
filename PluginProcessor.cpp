@@ -101,15 +101,15 @@ void SlowGear_JUCEv1AudioProcessor::prepareToPlay (double sampleRate, int sample
     this->sampleRate = sampleRate;
     this->samplesPerBlock = samplesPerBlock;
     
-    
     gainRamp = prepareMasterGainRamp(sampleRate, this->gainRampDurationSecondsMax);
 
     //reset the signalEnvelope to have the same size as samplesPerBlock
     signalEnvelope.clear(); //clearing the envelope may be unnecessary
     signalEnvelope.resize(samplesPerBlock);
+
+    updateSettings(apvts);
     
     //define the 0-63% attack/decay times for the envelope follower
-    
     envelopeAttackTime = std::exp(-1.0 / (sampleRate*envelopeAttackTimeMS*0.001) );
     envelopeDecayTime = std::exp(-1.0 / (sampleRate*envelopeDecayTimeMS*0.001) );
 }
@@ -159,14 +159,19 @@ void SlowGear_JUCEv1AudioProcessor::processBlock (juce::AudioBuffer<float>& buff
     // when they first compile a plugin, but obviously you don't need to keep
     // this code if your algorithm always overwrites all the output channels.
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
+    {
         buffer.clear (i, 0, buffer.getNumSamples());
-
+    }
+    
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
     // Make sure to reset the state if your inner loop is processing
     // the samples and the outer loop is handling the channels.
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
+    
+    updateSettings(apvts);
+    
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
         auto* channelDataWrite = buffer.getWritePointer(channel);
@@ -174,7 +179,7 @@ void SlowGear_JUCEv1AudioProcessor::processBlock (juce::AudioBuffer<float>& buff
         
         calculateRCEnvelope(channelDataRead);
         impulseIndex = detectImpulseFromEnvelope(impulseThreshold);
-        applyGainRamp(channelDataWrite, impulseIndex, gainRampDurationSeconds);
+        applyGainRamp(channelDataWrite, impulseIndex, gainRampSwellTimeSeconds);
         
     }
 }
@@ -218,8 +223,6 @@ juce::AudioProcessorValueTreeState::ParameterLayout SlowGear_JUCEv1AudioProcesso
      */
     juce::AudioProcessorValueTreeState::ParameterLayout parameterLayout;
     
-   
-    
     //This wants std::unique_ptr<Items> items
     //There is no juce::AudioParameterDouble
     parameterLayout.add(std::make_unique<juce::AudioParameterFloat>(
@@ -247,6 +250,40 @@ juce::AudioProcessorValueTreeState::ParameterLayout SlowGear_JUCEv1AudioProcesso
         ) );
     
     return parameterLayout;
+}
+
+void SlowGear_JUCEv1AudioProcessor::updateSettings(juce::AudioProcessorValueTreeState& apValueTreeState)
+{
+    envelopeDecayTimeMS = getEnvelopeDecayTimeFromAPVTS(apvts);
+    impulseThreshold =  juce::Decibels::decibelsToGain( getThresholdFromAPVTS(apvts) );
+    gainRampSwellTimeSeconds = getSwellTimeFromAPVTS(apvts);
+}
+
+Settings SlowGear_JUCEv1AudioProcessor::getAllSettings(juce::AudioProcessorValueTreeState& apValueTreeState)
+{
+    Settings settings;
+    
+    //Because the raw parameter values are atomic, we need to call their load funct to get them
+    settings.threshold = apValueTreeState.getRawParameterValue("Threshold dB")->load();
+    settings.swellTime = apValueTreeState.getRawParameterValue("Swell Time")->load();
+    settings.envelopeDecayTime = apValueTreeState.getRawParameterValue("Envelope Decay Time")->load();
+    
+    return settings;
+}
+
+float SlowGear_JUCEv1AudioProcessor::getThresholdFromAPVTS(juce::AudioProcessorValueTreeState& apValueTreeState)
+{
+    return apValueTreeState.getRawParameterValue("Threshold dB")->load();
+}
+
+float SlowGear_JUCEv1AudioProcessor::getSwellTimeFromAPVTS(juce::AudioProcessorValueTreeState& apValueTreeState)
+{
+    return apValueTreeState.getRawParameterValue("Swell Time")->load();
+}
+
+float SlowGear_JUCEv1AudioProcessor::getEnvelopeDecayTimeFromAPVTS(juce::AudioProcessorValueTreeState& apValueTreeState)
+{
+    return apValueTreeState.getRawParameterValue("Envelope Decay Time")->load();
 }
 
 std::vector<double> SlowGear_JUCEv1AudioProcessor::prepareMasterGainRamp(double f_sampleRate, double f_gainRampDurationSecondsMax)

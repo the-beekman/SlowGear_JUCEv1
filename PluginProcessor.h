@@ -12,6 +12,13 @@
 
 #include <JuceHeader.h>
 
+struct Settings
+{
+    float threshold { 0 }, swellTime {0}, envelopeDecayTime {0};
+};
+
+
+
 //==============================================================================
 /**
 */
@@ -70,6 +77,11 @@ public:
             //This function is called first, before we get to the private section. All variables used in createParameterLayout MUST be initialized BEFORE this line
     };
     
+    Settings getAllSettings(juce::AudioProcessorValueTreeState& apValueTreeState);
+    float getThresholdFromAPVTS(juce::AudioProcessorValueTreeState& apValueTreeState);
+    float getSwellTimeFromAPVTS(juce::AudioProcessorValueTreeState& apValueTreeState);
+    float getEnvelopeDecayTimeFromAPVTS(juce::AudioProcessorValueTreeState& apValueTreeState);
+    
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SlowGear_JUCEv1AudioProcessor)
@@ -77,8 +89,10 @@ private:
     int samplesPerBlock;
     double sampleRate;
     
+    void updateSettings(juce::AudioProcessorValueTreeState& apValueTreeState);
+    
     std::vector<double> gainRamp;
-    float gainRampDurationSeconds = 1;
+    float gainRampSwellTimeSeconds = 1; //was 1
     
     int gainRampNumSamples;
     std::vector<double> prepareMasterGainRamp(double sampleRate, double gainRampDurationSecondsMax);
@@ -90,7 +104,7 @@ private:
     template<typename dataType>
     void calculateRCEnvelope(dataType* channelDataReadPtr);
     
-    double impulseThreshold = 0.02;
+    double impulseThreshold = 0.02; //was 0.02
     int impulseIndex;
     int detectImpulseFromEnvelope(double f_threshold);
     
