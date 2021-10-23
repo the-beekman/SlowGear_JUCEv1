@@ -360,9 +360,17 @@ int SlowGear_JUCEv1AudioProcessor::detectImpulseFromEnvelope(double f_threshold)
         if ( !swellInProgress && (signalEnvelope.at(i) >= f_threshold) )
         {
             swellInProgress = true;
-            return i; //The index where the envelope went over the threshold
+            //return i; //The index where the envelope went over the threshold
+            if (i) // >= 1, saves us a compare
+            {
+                return std::max( 0, static_cast<int>( i - signalEnvelope.at(i)/(signalEnvelope.at(i)-signalEnvelope.at(i-1)) )); //perform 1 iteration of the secant method. float->int cast acts as a floor. std::max makes sure that the index is non-negative
+            }
+            else
+            {
+                return i; //if the threshold-crossing is at the first index, the index we want to return is actually in the previous frame. We don't operate on previous frames, so just return i (0).
+            }
         }
-        if ( signalEnvelope.at(i) < f_threshold )
+        if ( signalEnvelope.at(i) < 0.85*f_threshold )
         {
             //if it goes below the threshold, reset the swell state
             swellInProgress = false;
