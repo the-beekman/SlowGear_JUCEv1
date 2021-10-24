@@ -192,8 +192,8 @@ bool SlowGear_JUCEv1AudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* SlowGear_JUCEv1AudioProcessor::createEditor()
 {
-    //return new SlowGear_JUCEv1AudioProcessorEditor (*this);
-    return new juce::GenericAudioProcessorEditor(*this);
+    return new SlowGear_JUCEv1AudioProcessorEditor (*this);
+    //return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================
