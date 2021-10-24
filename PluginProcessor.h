@@ -82,6 +82,8 @@ public:
     float getSwellTimeFromAPVTS(juce::AudioProcessorValueTreeState& apValueTreeState);
     float getEnvelopeDecayTimeFromAPVTS(juce::AudioProcessorValueTreeState& apValueTreeState);
     
+    float getEnvelopeAttackTimeFromAPVTS(juce::AudioProcessorValueTreeState& apValueTreeState);
+    
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SlowGear_JUCEv1AudioProcessor)

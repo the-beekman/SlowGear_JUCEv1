@@ -239,7 +239,16 @@ juce::AudioProcessorValueTreeState::ParameterLayout SlowGear_JUCEv1AudioProcesso
         1.f//float defaultValue
         ) );
     
-    //This is a risky parameter. High values are less likely to react correctly to closely-timed notes. Low values are more likely to cause the envelope to go below-and-above the threshold in the same frame, causing low volume glitches.
+    //Attack Time, for experimenting
+    parameterLayout.add(std::make_unique<juce::AudioParameterFloat>(
+        "Envelope Attack Time",//const String &parameterID,
+        "Envelope Attack Time",//const String &parameterName,
+        juce::NormalisableRange<float>(0.01f, 500.f, 0.01f, 0.2f),//NormalisableRange<float> normalisableRange(rangeStart, rangeEnd, intervalValue, skewFactor)
+            //This skew factor sets the midpoint to be 15ms
+        0.1f//float defaultValue
+        ) );
+    
+    //This is a risky parameter. High vreaper view timeline dB scalealues are less likely to react correctly to closely-timed notes. Low values are more likely to cause the envelope to go below-and-above the threshold in the same frame, causing low volume glitches.
     //10 is a good value from the testing
     parameterLayout.add(std::make_unique<juce::AudioParameterFloat>(
         "Envelope Decay Time",//const String &parameterID,
@@ -248,15 +257,20 @@ juce::AudioProcessorValueTreeState::ParameterLayout SlowGear_JUCEv1AudioProcesso
             //This skew factor sets the midpoint to be 15ms
         10.f//float defaultValue
         ) );
-    
+
     return parameterLayout;
 }
 
 void SlowGear_JUCEv1AudioProcessor::updateSettings(juce::AudioProcessorValueTreeState& apValueTreeState)
 {
+    //Right now this is called in every processBlock call
     envelopeDecayTimeMS = getEnvelopeDecayTimeFromAPVTS(apvts);
     impulseThreshold =  juce::Decibels::decibelsToGain( getThresholdFromAPVTS(apvts) );
     gainRampSwellTimeSeconds = getSwellTimeFromAPVTS(apvts);
+    envelopeAttackTimeMS = getEnvelopeAttackTimeFromAPVTS(apvts);
+    
+    envelopeAttackTime = std::exp(-1.0 / (sampleRate*envelopeAttackTimeMS*0.001) );
+    envelopeDecayTime = std::exp(-1.0 / (sampleRate*envelopeDecayTimeMS*0.001) );
 }
 
 Settings SlowGear_JUCEv1AudioProcessor::getAllSettings(juce::AudioProcessorValueTreeState& apValueTreeState)
@@ -286,10 +300,15 @@ float SlowGear_JUCEv1AudioProcessor::getEnvelopeDecayTimeFromAPVTS(juce::AudioPr
     return apValueTreeState.getRawParameterValue("Envelope Decay Time")->load();
 }
 
+float SlowGear_JUCEv1AudioProcessor::getEnvelopeAttackTimeFromAPVTS(juce::AudioProcessorValueTreeState& apValueTreeState)
+{
+    return apValueTreeState.getRawParameterValue("Envelope Attack Time")->load();
+}
+
 std::vector<double> SlowGear_JUCEv1AudioProcessor::prepareMasterGainRamp(double f_sampleRate, double f_gainRampDurationSecondsMax)
 {
     //We interpolate between samples of the master gain ramp to get the gain value for faster swell times (compared to the maximum).
-    //prefix f_ denotes the variable has local function scope
+    //prefix f_ denotes the variable has local function sco pe
     
     
     //weird stuff here - gainRampNumSamples is the CLASS variable, while sampleRate and the duration is the FUNCTION ARGUMENTS. Justification at-the-time is that I want to guaruntee that INDEPENDENT VARIABLES sampleRate and gainRampDurationSecondsMax are set correctly, since gainRampNumSamples and vector gainRamp are DEPENDENT VARIABLES on them.
