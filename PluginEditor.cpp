@@ -44,6 +44,8 @@ void SlowGear_JUCEv1AudioProcessorEditor::paint (juce::Graphics& g)
 
     g.setColour (juce::Colours::white);
     g.setFont (15.0f);
+    g.drawFittedText ("Welcome!", getLocalBounds(), juce::Justification::centred, 1);
+
 }
 
 void SlowGear_JUCEv1AudioProcessorEditor::resized()
