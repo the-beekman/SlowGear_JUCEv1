@@ -19,9 +19,10 @@ public:
 class CustomRotarySlider : public juce::Slider
 {
 public:
-    CustomRotarySlider(juce::RangedAudioParameter& constructorRAP) : juce::Slider(juce::Slider::SliderStyle::RotaryVerticalDrag, juce::Slider::TextEntryBoxPosition::TextBoxAbove), parameterPtr(&constructorRAP)
+    CustomRotarySlider(juce::RangedAudioParameter& constructorRAP, juce::String sliderTitle) : juce::Slider(juce::Slider::SliderStyle::RotaryVerticalDrag, juce::Slider::TextEntryBoxPosition::NoTextBox), parameterPtr(&constructorRAP)
     {
         setLookAndFeel(&lookAndFeel);
+        this->sliderTitle = sliderTitle;
     }
     ~CustomRotarySlider()
     {
@@ -31,10 +32,16 @@ public:
     void paint(juce::Graphics& g) override;
     juce::Rectangle<int> getSliderBounds() const;
     int getTextHeight() const {return textHeight;}
+    int getTitleTextHeight() const {return titleTextHeight;}
+    juce::String getDisplayString() {return juce::String(getValue(), 1)+juce::String(" dB");};
+    juce::String getSliderTitle() {return sliderTitle;}
+    void drawSliderTitle(juce::Graphics& g);
     
 private:
     CustomRotarySliderLookAndFeel lookAndFeel;
     const int textHeight = 14;
+    const int titleTextHeight = 14;
+    juce::String sliderTitle;
     
     juce::RangedAudioParameter* parameterPtr; //We need to provide a pointer to a parameter so that the plugin knows which parameter the slider is controlling
     
@@ -55,7 +62,7 @@ public:
 class CustomHorizontalSlider : public juce::Slider
 {
 public:
-    CustomHorizontalSlider(juce::RangedAudioParameter& constructorRAP) : juce::Slider(juce::Slider::SliderStyle::LinearHorizontal, juce::Slider::TextEntryBoxPosition::TextBoxAbove), parameterPtr(&constructorRAP)
+    CustomHorizontalSlider(juce::RangedAudioParameter& constructorRAP, juce::String sliderTitle) : juce::Slider(juce::Slider::SliderStyle::LinearHorizontal, juce::Slider::TextEntryBoxPosition::TextBoxAbove), parameterPtr(&constructorRAP)
     {
         setLookAndFeel(&lookAndFeel);
     }

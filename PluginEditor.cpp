@@ -18,10 +18,10 @@
 SlowGear_JUCEv1AudioProcessorEditor::SlowGear_JUCEv1AudioProcessorEditor (SlowGear_JUCEv1AudioProcessor& p)
     :   AudioProcessorEditor (&p),
         audioProcessor (p),
-        thresholdSlider(*audioProcessor.apvts.getParameter("Threshold dB")), //This must be a pointer or it doesn't compile
-        swellTimeSlider(*audioProcessor.apvts.getParameter("Swell Time")),
-        attackTimeSlider(*audioProcessor.apvts.getParameter("Envelope Attack Time")),
-        decayTimeSlider(*audioProcessor.apvts.getParameter("Envelope Decay Time")),
+        thresholdSlider(*audioProcessor.apvts.getParameter("Threshold dB"), "Threshold"), //This must be a pointer or it doesn't compile
+        swellTimeSlider(*audioProcessor.apvts.getParameter("Swell Time"), "Swell Time"),
+        attackTimeSlider(*audioProcessor.apvts.getParameter("Envelope Attack Time"), "Envelope Attack"),
+        decayTimeSlider(*audioProcessor.apvts.getParameter("Envelope Decay Time"), "Envelope Decay"),
         thresholdSliderAttachment(audioProcessor.apvts, "Threshold dB", thresholdSlider),
         swellTimeSliderAttachment(audioProcessor.apvts, "Swell Time", swellTimeSlider),
         attackTimeSliderAttachment(audioProcessor.apvts, "Envelope Attack Time", attackTimeSlider),
