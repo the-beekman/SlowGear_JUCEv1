@@ -3,14 +3,17 @@
 #define ROTARY_SLIDER_TICK_THICKNESS 2.f
 #define ROTARY_SLIDER_SETTING_THICKNESS 10.f
 
+#define LINEAR_SLIDER_TICK_THICKNESS 3.f
+#define LINEAR_SLIDER_SETTING_THICKNESS 10.f
+
 #define SETTING_COLOR juce::Colours::cyan
 #define UNFILLED_COLOR juce::Colours::black
+#define TICK_COLOR juce::Colours::white
 
 
 //CustomRotarySliderLookAndFeel's methods
 //==============================================================================
 
-// Old method, manual
 void CustomRotarySliderLookAndFeel::drawRotarySlider (juce::Graphics& g, int x, int y, int width, int height,float sliderPosProportional, float rotaryStartAngle, float rotaryEndAngle, juce::Slider& slider)
 {
     //This is called by paint. The function arguments are provided by paint.
@@ -25,7 +28,8 @@ void CustomRotarySliderLookAndFeel::drawRotarySlider (juce::Graphics& g, int x, 
     //The center circle
     auto circleBounds = juce::Rectangle<float>(x,y,width,height);
     g.setColour(juce::Colour(34u,46u,63u)); //was (55u,69u,79u)
-    //g.fillEllipse(circleBounds);
+    g.fillEllipse(circleBounds);
+    //g.fillRect(circleBounds);
     
     auto circleCenter = circleBounds.getCentre();
 
@@ -46,7 +50,7 @@ void CustomRotarySliderLookAndFeel::drawRotarySlider (juce::Graphics& g, int x, 
     tickPath.addRectangle(tickLine);
     tickPath.applyTransform( juce::AffineTransform().rotated(sliderAngleRadians, circleCenter.getX(),circleCenter.getY() ) );
     
-    g.setColour(juce::Colours::white);
+    g.setColour(TICK_COLOR);
     g.fillPath(tickPath);
     
     //The thin arc
@@ -107,14 +111,81 @@ void CustomRotarySlider::paint(juce::Graphics& g)
                                       *this //Slider&
                                       );
     
-
-    
-    
-    
-    
 }
 
 juce::Rectangle<int> CustomRotarySlider::getSliderBounds() const
 {
-    return getLocalBounds();
+    //return getLocalBounds();
+    
+    auto localBounds = getLocalBounds();
+    auto size = juce::jmin(localBounds.getWidth(), localBounds.getHeight());
+    
+    size -= getTextHeight() * 2;
+    
+    
+    juce::Rectangle<int> sliderBounds;
+    sliderBounds.setSize(size,size);
+    sliderBounds.setCentre(localBounds.getCentreX(),localBounds.getCentreY());
+    sliderBounds.setY(localBounds.getBottom()-size);
+    // sliderBounds.setBottom(localBounds.getBottom()); //this line EXTENDS the bottom
+    
+    
+    return sliderBounds;
 }
+
+//CustomHorizontalSliderLookAndFeel's methods
+//==============================================================================
+void CustomHorizontalSliderLookAndFeel::drawLinearSlider (juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const juce::Slider::SliderStyle style, juce::Slider& slider)
+{
+    using namespace juce;
+
+    auto trackWidth = jmin (6.0f, slider.isHorizontal() ? (float) height * 0.25f : (float) width * 0.25f);
+
+    Point<float> startPoint (slider.isHorizontal() ? (float) x : (float) x + (float) width * 0.5f,
+                            slider.isHorizontal() ? (float) y + (float) height * 0.5f : (float) (height + y));
+
+    Point<float> endPoint (slider.isHorizontal() ? (float) (width + x) : startPoint.x,
+                          slider.isHorizontal() ? startPoint.y : (float) y);
+
+    //The background range
+    Path backgroundTrack;
+    backgroundTrack.startNewSubPath (startPoint);
+    backgroundTrack.lineTo (endPoint);
+    g.setColour (UNFILLED_COLOR);
+    g.strokePath (backgroundTrack, { trackWidth, PathStrokeType::curved, PathStrokeType::butt });
+
+    //The setting track
+    Path valueTrack;
+    Point<float> minPoint, valuePoint;
+    
+
+    auto valueX = slider.isHorizontal() ? sliderPos : ((float) x + (float) width * 0.5f);
+    auto valueY = slider.isHorizontal() ? ((float) y + (float) height * 0.5f) : sliderPos;
+
+    minPoint = startPoint;
+    valuePoint = { valueX, valueY };
+
+
+    valueTrack.startNewSubPath (minPoint);
+    valueTrack.lineTo (valuePoint);
+    //g.setColour (slider.findColour (Slider::trackColourId));
+    g.setColour(SETTING_COLOR);
+    g.strokePath (valueTrack, { trackWidth, PathStrokeType::curved, PathStrokeType::butt });
+    
+    
+    //The tick
+    //auto thumbWidth = getSliderThumbRadius (slider);
+    auto tickWidth = LINEAR_SLIDER_TICK_THICKNESS;
+    auto tickHeight = 3*trackWidth;
+    //g.setColour (slider.findColour (Slider::thumbColourId));
+    g.setColour(TICK_COLOR);
+    g.fillRect (Rectangle<float> (static_cast<float> (tickWidth), static_cast<float> (tickHeight)).withCentre (valuePoint));
+
+}
+
+//CustomHorizontalSlider's methods
+//==============================================================================
+//void CustomHorizontalSlider::paint(juce::Graphics& g)
+//{
+//
+//}

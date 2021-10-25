@@ -41,12 +41,35 @@ private:
 
 };
 
+//==============================================================================
+
+class CustomHorizontalSliderLookAndFeel : public juce::LookAndFeel_V4
+{
+public:
+    void drawLinearSlider (juce::Graphics& g, int x, int y, int width, int height,
+                           float sliderPos, float minSliderPos, float maxSliderPos,
+                           const juce::Slider::SliderStyle, juce::Slider& slider) override;
+    
+};
+
 class CustomHorizontalSlider : public juce::Slider
 {
 public:
-    CustomHorizontalSlider() : juce::Slider(juce::Slider::SliderStyle::LinearHorizontal, juce::Slider::TextEntryBoxPosition::TextBoxAbove)
+    CustomHorizontalSlider(juce::RangedAudioParameter& constructorRAP) : juce::Slider(juce::Slider::SliderStyle::LinearHorizontal, juce::Slider::TextEntryBoxPosition::TextBoxAbove), parameterPtr(&constructorRAP)
     {
-        
+        setLookAndFeel(&lookAndFeel);
     }
+    ~CustomHorizontalSlider()
+    {
+        setLookAndFeel(nullptr); //Since set it in the constructor, we have to unset it in the destructor
+    }
+    
+    //void paint(juce::Graphics& g) override;
+private:
+    CustomHorizontalSliderLookAndFeel lookAndFeel;
+    const int textHeight = 14;
+    
+    juce::RangedAudioParameter* parameterPtr; //We need to provide a pointer to a parameter so that the plugin knows which parameter the slider is controlling
+    
 
 };

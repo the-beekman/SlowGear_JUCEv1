@@ -32,7 +32,7 @@ private:
     // access the processor object that created it.
     SlowGear_JUCEv1AudioProcessor& audioProcessor;
     
-    int windowHeight = 1000, windowWidth = 1000;
+    int windowHeight = 300, windowWidth = 400;
     float windowPadding = 0.05;
     
     
