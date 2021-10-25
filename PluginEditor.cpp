@@ -10,6 +10,7 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "EditorCustomVisuals.h"
 
 //==============================================================================
 
@@ -17,9 +18,10 @@
 SlowGear_JUCEv1AudioProcessorEditor::SlowGear_JUCEv1AudioProcessorEditor (SlowGear_JUCEv1AudioProcessor& p)
     :   AudioProcessorEditor (&p),
         audioProcessor (p),
+        thresholdSlider(*audioProcessor.apvts.getParameter("Threshold dB")), //This must be a pointer or it doesn't compile
         thresholdSliderAttachment(audioProcessor.apvts, "Threshold dB", thresholdSlider),
         swellTimeSliderAttachment(audioProcessor.apvts, "Swell Time", swellTimeSlider),
-        //attackTimeSliderAttachment(audioProcessor.apvts, "Envelope Attack Time", attackTimeSlider),
+        attackTimeSliderAttachment(audioProcessor.apvts, "Envelope Attack Time", attackTimeSlider),
         decayTimeSliderAttachment(audioProcessor.apvts, "Envelope Decay Time", decayTimeSlider)
 {
     // Make sure that before the constructor has finished, you've set the
@@ -44,7 +46,6 @@ void SlowGear_JUCEv1AudioProcessorEditor::paint (juce::Graphics& g)
 
     g.setColour (juce::Colours::white);
     g.setFont (15.0f);
-    g.drawFittedText ("Welcome!", getLocalBounds(), juce::Justification::centred, 1);
 
 }
 

@@ -12,32 +12,11 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include "EditorCustomVisuals.h"
+
+
 
 //==============================================================================
-/**
-*/
-
-//These need to be structs. If they are classes, we get a "Cannot cast CustomRotarySlider to its private base class juce::Component" error
-struct CustomRotarySlider : juce::Slider
-{
-public:
-  CustomRotarySlider() : juce::Slider(juce::Slider::SliderStyle::RotaryVerticalDrag, juce::Slider::TextEntryBoxPosition::TextBoxAbove)
-    {
-        
-    }
-
-};
-
-struct CustomHorizontalSlider : juce::Slider
-{
-public:
-    CustomHorizontalSlider() : juce::Slider(juce::Slider::SliderStyle::LinearHorizontal, juce::Slider::TextEntryBoxPosition::TextBoxAbove)
-    {
-        
-    }
-
-};
-
 class SlowGear_JUCEv1AudioProcessorEditor  : public juce::AudioProcessorEditor
 {
 public:
@@ -53,7 +32,7 @@ private:
     // access the processor object that created it.
     SlowGear_JUCEv1AudioProcessor& audioProcessor;
     
-    int windowHeight = 300, windowWidth = 400;
+    int windowHeight = 1000, windowWidth = 1000;
     float windowPadding = 0.05;
     
     
@@ -66,7 +45,7 @@ private:
     
     Attachment  thresholdSliderAttachment,
                 swellTimeSliderAttachment,
-                //attackTimeSliderAttachment,
+                attackTimeSliderAttachment,
                 decayTimeSliderAttachment;
     
     std::vector<juce::Component*> getAllComponents()
