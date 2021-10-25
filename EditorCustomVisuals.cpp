@@ -41,7 +41,7 @@ void CustomRotarySliderLookAndFeel::drawRotarySlider (juce::Graphics& g, int x, 
     
     auto circleRadius = std::abs(circleCenter.getY()-circleBounds.getY());
     
-    int tickHeight = circleRadius*0.5;
+    int tickHeight = circleRadius*0.333;
     
     juce::Rectangle<float> tickLine;
     tickLine.setLeft(circleCenter.getX() - ROTARY_SLIDER_TICK_THICKNESS/2);
@@ -154,6 +154,9 @@ juce::Rectangle<int> CustomRotarySlider::getSliderBounds() const
     sliderBounds.setSize(size,size);
     sliderBounds.setCentre(localBounds.getCentreX(),localBounds.getCentreY());
     sliderBounds.setY(localBounds.getBottom()-size);
+    size = (sliderBounds.getHeight() - getTitleTextHeight());
+    sliderBounds.setSize(size,size);
+    sliderBounds.setCentre(localBounds.getCentreX(), sliderBounds.getCentreY());
     // sliderBounds.setBottom(localBounds.getBottom()); //this line EXTENDS the bottom
     
     
@@ -163,11 +166,12 @@ juce::Rectangle<int> CustomRotarySlider::getSliderBounds() const
 void CustomRotarySlider::drawSliderTitle(juce::Graphics& g)
 {
     auto areaBounds = getLocalBounds();
-    auto squareDimension = juce::jmin(areaBounds.getWidth(), areaBounds.getHeight());
     
     areaBounds.setHeight(getTitleTextHeight()*2 - ROTARY_SLIDER_SETTING_THICKNESS);
     
+    
     g.setColour(TITLE_COLOR);
+    g.setFont(this->getTitleTextHeight());
     g.drawFittedText(this->getSliderTitle(), areaBounds, juce::Justification::centred, 1);
 }
 
@@ -178,6 +182,26 @@ void CustomRotarySlider::drawSliderTitle(juce::Graphics& g)
 void CustomHorizontalSliderLookAndFeel::drawLinearSlider (juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const juce::Slider::SliderStyle style, juce::Slider& slider)
 {
 
+    if (auto* customHorizontalSlider = dynamic_cast<CustomHorizontalSlider*>(&slider))
+    {
+//        auto circleCenter = circleBounds.getCentre();
+//
+//
+//        auto text = customRotarySlider->getDisplayString();
+//        auto strWidth = g.getCurrentFont().getStringWidth(text);
+//
+//        juce::Rectangle<float> textBoxRectangle;
+//        textBoxRectangle.setSize(strWidth+4, customRotarySlider->getTextHeight() + 2);
+//        textBoxRectangle.setCentre(circleCenter);
+//
+//        g.setColour(LABEL_COLOR);
+//        g.drawFittedText(text, textBoxRectangle.toNearestInt(), juce::Justification::centred, 1);
+//
+        customHorizontalSlider->drawSliderInformation(g);
+    }
+    
+    y = y+height/6; //bias the height a bit down to make room for the title
+    
     auto trackWidth = juce::jmin (6.0f, slider.isHorizontal() ? (float) height * 0.25f : (float) width * 0.25f);
 
     juce::Point<float> startPoint (slider.isHorizontal() ? (float) x : (float) x + (float) width * 0.5f,
@@ -192,6 +216,7 @@ void CustomHorizontalSliderLookAndFeel::drawLinearSlider (juce::Graphics& g, int
     backgroundTrack.lineTo (endPoint);
     g.setColour (UNFILLED_COLOR);
     g.strokePath (backgroundTrack, { trackWidth, juce::PathStrokeType::curved, juce::PathStrokeType::butt });
+    
 
     //The setting track
     juce::Path valueTrack;
@@ -215,15 +240,32 @@ void CustomHorizontalSliderLookAndFeel::drawLinearSlider (juce::Graphics& g, int
     //The tick
     //auto thumbWidth = getSliderThumbRadius (slider);
     auto tickWidth = LINEAR_SLIDER_TICK_THICKNESS;
-    auto tickHeight = 3*trackWidth;
+    auto tickHeight = 2.5*trackWidth;
     //g.setColour (slider.findColour (Slider::thumbColourId));
     g.setColour(TICK_COLOR);
     g.fillRect (juce::Rectangle<float> (static_cast<float> (tickWidth), static_cast<float> (tickHeight)).withCentre (valuePoint));
-
+    
 }
 
 //CustomHorizontalSlider's methods
 //==============================================================================
+
+void CustomHorizontalSlider::drawSliderInformation(juce::Graphics& g)
+{
+    auto bounds = getLocalBounds();
+    bounds = bounds.reduced(12, 0);
+    
+    
+    g.setColour(TITLE_COLOR);
+    g.setFont(this->getTitleTextHeight());
+    g.drawFittedText(getSliderTitle(), bounds, juce::Justification::topLeft, 1);
+    
+    g.setColour(LABEL_COLOR);
+    g.setFont(this->getTextHeight());
+    g.drawFittedText(getDisplayString(), bounds, juce::Justification::topRight, 1);
+    
+}
+
 //void CustomHorizontalSlider::paint(juce::Graphics& g)
 //{
 //

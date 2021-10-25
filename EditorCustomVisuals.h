@@ -19,10 +19,11 @@ public:
 class CustomRotarySlider : public juce::Slider
 {
 public:
-    CustomRotarySlider(juce::RangedAudioParameter& constructorRAP, juce::String sliderTitle) : juce::Slider(juce::Slider::SliderStyle::RotaryVerticalDrag, juce::Slider::TextEntryBoxPosition::NoTextBox), parameterPtr(&constructorRAP)
+    CustomRotarySlider(juce::RangedAudioParameter& constructorRAP, juce::String sliderTitle, juce::String suffix) : juce::Slider(juce::Slider::SliderStyle::RotaryVerticalDrag, juce::Slider::TextEntryBoxPosition::NoTextBox), parameterPtr(&constructorRAP)
     {
         setLookAndFeel(&lookAndFeel);
         this->sliderTitle = sliderTitle;
+        this->suffix = juce::String{suffix};
     }
     ~CustomRotarySlider()
     {
@@ -42,6 +43,7 @@ private:
     const int textHeight = 14;
     const int titleTextHeight = 14;
     juce::String sliderTitle;
+    juce::String suffix;
     
     juce::RangedAudioParameter* parameterPtr; //We need to provide a pointer to a parameter so that the plugin knows which parameter the slider is controlling
     
@@ -62,19 +64,32 @@ public:
 class CustomHorizontalSlider : public juce::Slider
 {
 public:
-    CustomHorizontalSlider(juce::RangedAudioParameter& constructorRAP, juce::String sliderTitle) : juce::Slider(juce::Slider::SliderStyle::LinearHorizontal, juce::Slider::TextEntryBoxPosition::TextBoxAbove), parameterPtr(&constructorRAP)
+    CustomHorizontalSlider(juce::RangedAudioParameter& constructorRAP, juce::String sliderTitle, juce::String suffix) : juce::Slider(juce::Slider::SliderStyle::LinearHorizontal, juce::Slider::TextEntryBoxPosition::NoTextBox), parameterPtr(&constructorRAP)
     {
         setLookAndFeel(&lookAndFeel);
+        this->sliderTitle = sliderTitle;
+        this->suffix = juce::String{suffix};
     }
     ~CustomHorizontalSlider()
     {
         setLookAndFeel(nullptr); //Since set it in the constructor, we have to unset it in the destructor
     }
     
+    void drawSliderInformation(juce::Graphics& g);
+    
+    juce::String getDisplayString() {return juce::String(getValue(), 2)+juce::String(" ")+suffix;}
+    juce::String getSliderTitle() {return sliderTitle;}
+    int getTextHeight() {return textHeight;}
+    int getTitleTextHeight() {return titleTextHeight;}
+    
     //void paint(juce::Graphics& g) override;
 private:
     CustomHorizontalSliderLookAndFeel lookAndFeel;
     const int textHeight = 14;
+    const int titleTextHeight = 14;
+    juce::String suffix;
+    
+    juce::String sliderTitle;
     
     juce::RangedAudioParameter* parameterPtr; //We need to provide a pointer to a parameter so that the plugin knows which parameter the slider is controlling
     
