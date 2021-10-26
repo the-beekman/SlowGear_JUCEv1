@@ -20,8 +20,8 @@ SlowGear_JUCEv1AudioProcessorEditor::SlowGear_JUCEv1AudioProcessorEditor (SlowGe
         audioProcessor (p),
         thresholdSlider(*audioProcessor.apvts.getParameter("Threshold dB"), "Threshold", "dB"), //This must be a pointer or it doesn't compile
         swellTimeSlider(*audioProcessor.apvts.getParameter("Swell Time"), "Swell Time", "s"),
-        attackTimeSlider(*audioProcessor.apvts.getParameter("Envelope Attack Time"), "Attack", "s"),
-        decayTimeSlider(*audioProcessor.apvts.getParameter("Envelope Decay Time"), "Decay","s"),
+        attackTimeSlider(*audioProcessor.apvts.getParameter("Envelope Attack Time"), "Follower Attack", "ms"),
+        decayTimeSlider(*audioProcessor.apvts.getParameter("Envelope Decay Time"), "Follower Reset","ms"),
         thresholdSliderAttachment(audioProcessor.apvts, "Threshold dB", thresholdSlider),
         swellTimeSliderAttachment(audioProcessor.apvts, "Swell Time", swellTimeSlider),
         attackTimeSliderAttachment(audioProcessor.apvts, "Envelope Attack Time", attackTimeSlider),
@@ -107,8 +107,7 @@ void SlowGear_JUCEv1AudioProcessorEditor::resized()
     swellTimeSlider.setBounds(timeSliderBounds);
         
     buttonBounds = paddedBounds.removeFromLeft(0.3*windowWidth);
-    initializeButtonHeader(buttonBounds);
-    initializeModeButtons(buttonBounds);
+    //The buttons and header should be aligned with the sliders, so we initialize them after the sliders
 
     //The time sliders get half of the remaining height
     attackTimeSliderBounds = paddedBounds.removeFromTop(0.5*paddedBounds.getHeight());
@@ -116,13 +115,18 @@ void SlowGear_JUCEv1AudioProcessorEditor::resized()
 
     decayTimeSliderBounds = paddedBounds;
     decayTimeSlider.setBounds(decayTimeSliderBounds);
+    
+    initializeButtonHeader(buttonBounds);
+    initializeModeButtons(buttonBounds);
 
 }
 
 void SlowGear_JUCEv1AudioProcessorEditor::initializeButtonHeader(const juce::Rectangle<int> buttonArea)
 {
     buttonHeader.setText("Envelope Follower", juce::NotificationType::dontSendNotification);
-    buttonHeader.setBounds(buttonArea.getX(), buttonArea.getY()-3, buttonArea.getWidth(), buttonHeader.getFont().getHeight()+buttonHeader.getFont().getDescent());
+    buttonHeader.setFont(14);
+    //buttonHeader.setBounds(buttonArea.getX(), buttonArea.getY()-3, buttonArea.getWidth(), buttonHeader.getFont().getHeight()+buttonHeader.getFont().getDescent());
+    buttonHeader.setBounds(buttonArea.getX(), attackTimeSlider.getY()-1, buttonArea.getWidth(), buttonHeader.getFont().getHeight()+buttonHeader.getFont().getDescent());
     buttonHeader.setJustificationType(juce::Justification::centredTop);
 }
 
@@ -134,22 +138,33 @@ void SlowGear_JUCEv1AudioProcessorEditor::initializeModeButtons(juce::Rectangle<
     customEnvelopeButton.setButtonText(std::string("Custom"));
     
     defaultButtonArea = buttonArea.removeFromTop(buttonArea.getHeight()*0.5);
-    customButtonArea = buttonArea; //This is a redundant line
+    customButtonArea = buttonArea;
    
-    int modeButtonHeight = 8+defaultEnvelopeButton.getLookAndFeel().getLabelFont(buttonHeader).getHeight();
-    int modeButtonWidth = customEnvelopeButton.getBestWidthForHeight(modeButtonHeight);
+    int modeButtonHeight = 8+defaultEnvelopeButton.getLookAndFeel().getLabelFont(buttonHeader).getHeight(); //It looks good with 8
+    int modeButtonWidth = defaultEnvelopeButton.getBestWidthForHeight(modeButtonHeight);
     
-    int buttonYOffset = defaultButtonArea.getHeight()/6-modeButtonHeight/2;
+    //int buttonYOffset = defaultButtonArea.getHeight()/6-modeButtonHeight/2;
         
-    defaultEnvelopeButton.setBounds(defaultButtonArea.getCentreX()-modeButtonWidth/2, defaultButtonArea.getCentreY()+buttonYOffset, modeButtonWidth, modeButtonHeight);
-    customEnvelopeButton.setBounds(customButtonArea.getCentreX()-modeButtonWidth/2, customButtonArea.getCentreY()+buttonYOffset, modeButtonWidth, modeButtonHeight);
+//    defaultEnvelopeButton.setBounds(defaultButtonArea.getCentreX()-modeButtonWidth/2, defaultButtonArea.getCentreY()+buttonYOffset, modeButtonWidth, modeButtonHeight);
+//    customEnvelopeButton.setBounds(customButtonArea.getCentreX()-modeButtonWidth/2, customButtonArea.getCentreY()+buttonYOffset, modeButtonWidth, modeButtonHeight);
+    
+    int buttonFontSize = defaultEnvelopeButton.getLookAndFeel().getTextButtonFont(defaultEnvelopeButton, modeButtonHeight).getHeight();
+    int buttonFontAscent = defaultEnvelopeButton.getLookAndFeel().getTextButtonFont(defaultEnvelopeButton, modeButtonHeight).getAscent();
+    
+    defaultEnvelopeButton.setBounds(defaultButtonArea.getCentreX()-modeButtonWidth/2,
+                                    defaultButtonArea.getY()+attackTimeSlider.getHeight()/2-buttonFontAscent/2,
+                                    modeButtonWidth,
+                                    modeButtonHeight);
+    
+    customEnvelopeButton.setBounds(customButtonArea.getCentreX()-modeButtonWidth/2,
+                                   decayTimeSlider.getY()+decayTimeSlider.getHeight()/2-buttonFontAscent/2,
+                                   modeButtonWidth,
+                                   modeButtonHeight);
     
 
     //We don't hard-code it because initialize gets called on resize and we want to keep the state
     defaultEnvelopeButton.setToggleState(envelopeMode == EnvelopeMode::Default, juce::NotificationType::dontSendNotification);
     customEnvelopeButton.setToggleState(envelopeMode == EnvelopeMode::Custom, juce::NotificationType::dontSendNotification);
-    
-    
     
     defaultEnvelopeButton.onClick = [&]() {
         if (envelopeMode == EnvelopeMode::Custom)
@@ -183,7 +198,7 @@ void SlowGear_JUCEv1AudioProcessorEditor::initializeModeButtons(juce::Rectangle<
 
 void SlowGear_JUCEv1AudioProcessorEditor::setToolTips()
 {
-    thresholdSlider.setTooltip("Signal envelope level to trigger swell");
+    thresholdSlider.setTooltip("Signal envelope level to trigger swell.");
     swellTimeSlider.setTooltip("0-99% rise time of signal.");
     attackTimeSlider.setTooltip("Envelope follower attack time. Longer values allow more of the initial signal transient.");
     decayTimeSlider.setTooltip("Envelope follower decay time. Longer values are less sensitive to repeated notes. Shorter values may cause false swells.");
