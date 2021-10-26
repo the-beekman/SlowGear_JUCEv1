@@ -99,11 +99,13 @@ void SlowGear_JUCEv1AudioProcessorEditor::resized()
 
     //rectangle.removeFrom___() returns what was removed, not what remains
 
-    thresholdSliderBounds = paddedBounds.removeFromTop(0.5*windowHeight);
+    topSliderBounds = paddedBounds.removeFromTop(0.5*windowHeight);
+    juce::Rectangle<int> topSliderBoundsHolder = topSliderBounds;
+    thresholdSliderBounds = topSliderBoundsHolder.removeFromLeft(0.5*topSliderBounds.getWidth());
     //thresholdSliderBounds = thresholdSliderBounds.removeFromTop(windowHeight*windowPadding);
     thresholdSlider.setBounds(thresholdSliderBounds);
-
-    timeSliderBounds = paddedBounds.removeFromTop(0.125*windowHeight);
+    
+    timeSliderBounds = topSliderBoundsHolder;
     swellTimeSlider.setBounds(timeSliderBounds);
         
     buttonBounds = paddedBounds.removeFromLeft(0.3*windowWidth);
@@ -152,12 +154,12 @@ void SlowGear_JUCEv1AudioProcessorEditor::initializeModeButtons(juce::Rectangle<
     int buttonFontAscent = defaultEnvelopeButton.getLookAndFeel().getTextButtonFont(defaultEnvelopeButton, modeButtonHeight).getAscent();
     
     defaultEnvelopeButton.setBounds(defaultButtonArea.getCentreX()-modeButtonWidth/2,
-                                    defaultButtonArea.getY()+attackTimeSlider.getHeight()/2-buttonFontAscent/2,
+                                    defaultButtonArea.getY()+attackTimeSlider.getHeight()/2-1, //it looks nicer with -1
                                     modeButtonWidth,
                                     modeButtonHeight);
     
     customEnvelopeButton.setBounds(customButtonArea.getCentreX()-modeButtonWidth/2,
-                                   decayTimeSlider.getY()+decayTimeSlider.getHeight()/2-buttonFontAscent/2,
+                                   decayTimeSlider.getY()+decayTimeSlider.getHeight()/2-1, //it looks nicer with -1
                                    modeButtonWidth,
                                    modeButtonHeight);
     

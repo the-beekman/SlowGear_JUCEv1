@@ -35,7 +35,14 @@ public:
     juce::Rectangle<int> getSliderBounds() const;
     int getTextHeight() const {return textHeight;}
     int getTitleTextHeight() const {return titleTextHeight;}
-    juce::String getDisplayString() {return juce::String(getValue(), 1)+juce::String(" dB");};
+    juce::String getDisplayString()
+    {
+        //String.compare() returns 0 if identical
+        if (suffix.compare("dB") == 0 ) return juce::String(getValue(), 1)+juce::String(" ")+suffix;
+        else if (suffix.compare("s") == 0) return juce::String(getValue(), 2)+juce::String(" ")+suffix;
+        else return juce::String("Error");
+        
+    };
     juce::String getSliderTitle() {return sliderTitle;}
     void drawSliderTitle(juce::Graphics& g);
     

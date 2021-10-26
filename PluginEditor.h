@@ -37,9 +37,9 @@ private:
     
     juce::Rectangle<int> defaultButtonArea, customButtonArea;
     
-    CustomRotarySlider thresholdSlider;
+    CustomRotarySlider thresholdSlider, swellTimeSlider;
     
-    CustomHorizontalSlider swellTimeSlider, attackTimeSlider, decayTimeSlider;
+    CustomHorizontalSlider attackTimeSlider, decayTimeSlider;
     
     using APVTS = juce::AudioProcessorValueTreeState;
     using Attachment = APVTS::SliderAttachment;
@@ -55,7 +55,7 @@ private:
     void initializeButtonHeader(const juce::Rectangle<int> buttonArea);
     void initializeModeButtons(juce::Rectangle<int> buttonArea);
     
-    juce::Rectangle<int> paddedBounds, thresholdSliderBounds, timeSliderBounds, buttonBounds, attackTimeSliderBounds, decayTimeSliderBounds;
+    juce::Rectangle<int> paddedBounds, topSliderBounds, thresholdSliderBounds, timeSliderBounds, buttonBounds, attackTimeSliderBounds, decayTimeSliderBounds;
     
     juce::TooltipWindow tooltipWindow {this, 500}; //2nd arg is ms before it appears
     
