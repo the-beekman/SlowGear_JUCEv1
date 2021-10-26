@@ -184,19 +184,6 @@ void CustomHorizontalSliderLookAndFeel::drawLinearSlider (juce::Graphics& g, int
 
     if (auto* customHorizontalSlider = dynamic_cast<CustomHorizontalSlider*>(&slider))
     {
-//        auto circleCenter = circleBounds.getCentre();
-//
-//
-//        auto text = customRotarySlider->getDisplayString();
-//        auto strWidth = g.getCurrentFont().getStringWidth(text);
-//
-//        juce::Rectangle<float> textBoxRectangle;
-//        textBoxRectangle.setSize(strWidth+4, customRotarySlider->getTextHeight() + 2);
-//        textBoxRectangle.setCentre(circleCenter);
-//
-//        g.setColour(LABEL_COLOR);
-//        g.drawFittedText(text, textBoxRectangle.toNearestInt(), juce::Justification::centred, 1);
-//
         customHorizontalSlider->drawSliderInformation(g);
     }
     
@@ -253,7 +240,7 @@ void CustomHorizontalSliderLookAndFeel::drawLinearSlider (juce::Graphics& g, int
 void CustomHorizontalSlider::drawSliderInformation(juce::Graphics& g)
 {
     auto bounds = getLocalBounds();
-    bounds = bounds.reduced(12, 0);
+    bounds = bounds.reduced(12, 0); //this magic number accounts for 12 pixels of padding on the sides of the slider.
     
     
     g.setColour(TITLE_COLOR);

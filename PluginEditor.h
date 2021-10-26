@@ -35,6 +35,7 @@ private:
     int windowHeight = 300, windowWidth = 400;
     float windowPadding = 0.05;
     
+    juce::Rectangle<int> defaultButtonArea, customButtonArea;
     
     CustomRotarySlider thresholdSlider;
     
@@ -48,6 +49,14 @@ private:
                 attackTimeSliderAttachment,
                 decayTimeSliderAttachment;
     
+    int envelopeMode = EnvelopeMode::Custom;
+    juce::TextButton defaultEnvelopeButton, customEnvelopeButton;
+    juce::Label buttonHeader;
+    void initializeButtonHeader(const juce::Rectangle<int> buttonArea);
+    void initializeModeButtons(juce::Rectangle<int> buttonArea);
+    
+    juce::Rectangle<int> paddedBounds, thresholdSliderBounds, timeSliderBounds, buttonBounds, attackTimeSliderBounds, decayTimeSliderBounds;
+    
     std::vector<juce::Component*> getAllComponents()
     {
         return
@@ -55,9 +64,21 @@ private:
             &thresholdSlider,
             &swellTimeSlider,
             &attackTimeSlider,
-            &decayTimeSlider
+            &decayTimeSlider,
+            &buttonHeader,
+            &defaultEnvelopeButton,
+            &customEnvelopeButton,
+            &tooltipWindow
+           
         };
     }
+    
+    enum EnvelopeMode
+    {
+        Default,
+        Custom,
+        NumOptions
+    };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SlowGear_JUCEv1AudioProcessorEditor)
 };
