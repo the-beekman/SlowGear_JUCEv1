@@ -57,6 +57,10 @@ private:
     
     juce::Rectangle<int> paddedBounds, thresholdSliderBounds, timeSliderBounds, buttonBounds, attackTimeSliderBounds, decayTimeSliderBounds;
     
+    juce::TooltipWindow tooltipWindow {this, 500}; //2nd arg is ms before it appears
+    
+    void setToolTips();
+    
     std::vector<juce::Component*> getAllComponents()
     {
         return

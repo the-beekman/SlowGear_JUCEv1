@@ -34,6 +34,8 @@ SlowGear_JUCEv1AudioProcessorEditor::SlowGear_JUCEv1AudioProcessorEditor (SlowGe
         addAndMakeVisible(comp);
     }
     
+    setToolTips();
+    
     setSize (windowWidth, windowHeight);
 }
 
@@ -108,7 +110,7 @@ void SlowGear_JUCEv1AudioProcessorEditor::resized()
     initializeModeButtons(buttonBounds);
 
     //The time sliders get half of the remaining height
-     attackTimeSliderBounds = paddedBounds.removeFromTop(0.5*paddedBounds.getHeight());
+    attackTimeSliderBounds = paddedBounds.removeFromTop(0.5*paddedBounds.getHeight());
     attackTimeSlider.setBounds(attackTimeSliderBounds);
 
     decayTimeSliderBounds = paddedBounds;
@@ -141,8 +143,7 @@ void SlowGear_JUCEv1AudioProcessorEditor::initializeModeButtons(juce::Rectangle<
     defaultEnvelopeButton.setBounds(defaultButtonArea.getCentreX()-modeButtonWidth/2, defaultButtonArea.getCentreY()+buttonYOffset, modeButtonWidth, modeButtonHeight);
     customEnvelopeButton.setBounds(customButtonArea.getCentreX()-modeButtonWidth/2, customButtonArea.getCentreY()+buttonYOffset, modeButtonWidth, modeButtonHeight);
     
-    defaultEnvelopeButton.setTooltip("Use default envelope follower.");
-    customEnvelopeButton.setTooltip("Use custom envelope follower.");
+
 
     //We don't hard-code it because initialize gets called on resize and we want to keep the state
     defaultEnvelopeButton.setToggleState(envelopeMode == EnvelopeMode::Default, juce::NotificationType::dontSendNotification);
@@ -161,4 +162,16 @@ void SlowGear_JUCEv1AudioProcessorEditor::initializeModeButtons(juce::Rectangle<
         customEnvelopeButton.setToggleState(true, juce::NotificationType::dontSendNotification);
     };
     
+}
+
+void SlowGear_JUCEv1AudioProcessorEditor::setToolTips()
+{
+    thresholdSlider.setTooltip("Signal envelope level to trigger swell");
+    swellTimeSlider.setTooltip("0-99% rise time of signal.");
+    attackTimeSlider.setTooltip("Envelope follower attack time. Longer values allow more of the initial signal transient.");
+    decayTimeSlider.setTooltip("Envelope follower decay time. Longer values are less sensitive to repeated notes. Shorter values may cause false swells.");
+    defaultEnvelopeButton.setTooltip("Use default envelope follower settings.");
+    customEnvelopeButton.setTooltip("Use custom envelope follower settings.");
+
+   
 }
