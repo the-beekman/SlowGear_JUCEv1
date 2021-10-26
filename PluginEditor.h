@@ -61,6 +61,8 @@ private:
     
     void setToolTips();
     
+    double attackTimeSavedValue = 0.1, decayTimeSavedValue = 10.0; //defaults
+    
     std::vector<juce::Component*> getAllComponents()
     {
         return
@@ -73,7 +75,6 @@ private:
             &defaultEnvelopeButton,
             &customEnvelopeButton,
             &tooltipWindow
-           
         };
     }
     

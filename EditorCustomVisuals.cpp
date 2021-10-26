@@ -8,6 +8,7 @@
 
 #define SETTING_COLOR juce::Colours::cyan
 #define UNFILLED_COLOR juce::Colours::black
+#define UNSET_COLOR juce::Colours::grey
 #define TICK_COLOR juce::Colours::white
 #define TITLE_COLOR juce::Colours::white
 #define LABEL_COLOR juce::Colours::white
@@ -220,7 +221,7 @@ void CustomHorizontalSliderLookAndFeel::drawLinearSlider (juce::Graphics& g, int
     valueTrack.startNewSubPath (minPoint);
     valueTrack.lineTo (valuePoint);
     //g.setColour (slider.findColour (Slider::trackColourId));
-    g.setColour(SETTING_COLOR);
+    g.setColour(slider.isEnabled() ? SETTING_COLOR : UNSET_COLOR);
     g.strokePath (valueTrack, { trackWidth, juce::PathStrokeType::curved, juce::PathStrokeType::butt });
     
     
@@ -229,7 +230,8 @@ void CustomHorizontalSliderLookAndFeel::drawLinearSlider (juce::Graphics& g, int
     auto tickWidth = LINEAR_SLIDER_TICK_THICKNESS;
     auto tickHeight = 2.5*trackWidth;
     //g.setColour (slider.findColour (Slider::thumbColourId));
-    g.setColour(TICK_COLOR);
+    
+    g.setColour(slider.isEnabled() ? TICK_COLOR : TICK_COLOR);
     g.fillRect (juce::Rectangle<float> (static_cast<float> (tickWidth), static_cast<float> (tickHeight)).withCentre (valuePoint));
     
 }

@@ -24,6 +24,7 @@ public:
         setLookAndFeel(&lookAndFeel);
         this->sliderTitle = sliderTitle;
         this->suffix = juce::String{suffix};
+        getLookAndFeel().setDefaultSansSerifTypefaceName("Arial");
     }
     ~CustomRotarySlider()
     {
@@ -69,6 +70,7 @@ public:
         setLookAndFeel(&lookAndFeel);
         this->sliderTitle = sliderTitle;
         this->suffix = juce::String{suffix};
+        getLookAndFeel().setDefaultSansSerifTypefaceName("Arial");
     }
     ~CustomHorizontalSlider()
     {

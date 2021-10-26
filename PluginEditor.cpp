@@ -33,6 +33,7 @@ SlowGear_JUCEv1AudioProcessorEditor::SlowGear_JUCEv1AudioProcessorEditor (SlowGe
     {
         addAndMakeVisible(comp);
     }
+    getLookAndFeel().setDefaultSansSerifTypefaceName("Arial");
     
     setToolTips();
     
@@ -47,8 +48,8 @@ SlowGear_JUCEv1AudioProcessorEditor::~SlowGear_JUCEv1AudioProcessorEditor()
 void SlowGear_JUCEv1AudioProcessorEditor::paint (juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
-
+    //g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    g.fillAll( juce::Colour {62,62,62});
     g.setColour (juce::Colours::white);
     g.setFont (15.0f);
     
@@ -135,8 +136,8 @@ void SlowGear_JUCEv1AudioProcessorEditor::initializeModeButtons(juce::Rectangle<
     defaultButtonArea = buttonArea.removeFromTop(buttonArea.getHeight()*0.5);
     customButtonArea = buttonArea; //This is a redundant line
    
-    int modeButtonHeight = 20;
-    int modeButtonWidth = 50;//customEnvelopeButton.getBestWidthForHeight(modeButtonHeight);
+    int modeButtonHeight = 8+defaultEnvelopeButton.getLookAndFeel().getLabelFont(buttonHeader).getHeight();
+    int modeButtonWidth = customEnvelopeButton.getBestWidthForHeight(modeButtonHeight);
     
     int buttonYOffset = defaultButtonArea.getHeight()/6-modeButtonHeight/2;
         
@@ -144,22 +145,38 @@ void SlowGear_JUCEv1AudioProcessorEditor::initializeModeButtons(juce::Rectangle<
     customEnvelopeButton.setBounds(customButtonArea.getCentreX()-modeButtonWidth/2, customButtonArea.getCentreY()+buttonYOffset, modeButtonWidth, modeButtonHeight);
     
 
-
     //We don't hard-code it because initialize gets called on resize and we want to keep the state
     defaultEnvelopeButton.setToggleState(envelopeMode == EnvelopeMode::Default, juce::NotificationType::dontSendNotification);
     customEnvelopeButton.setToggleState(envelopeMode == EnvelopeMode::Custom, juce::NotificationType::dontSendNotification);
     
     
+    
     defaultEnvelopeButton.onClick = [&]() {
-        envelopeMode = EnvelopeMode::Default;
-        defaultEnvelopeButton.setToggleState(true, juce::NotificationType::dontSendNotification);
-        customEnvelopeButton.setToggleState(false, juce::NotificationType::dontSendNotification);
+        if (envelopeMode == EnvelopeMode::Custom)
+        {
+            attackTimeSavedValue = attackTimeSlider.getValue();
+            decayTimeSavedValue = decayTimeSlider.getValue();
+            envelopeMode = EnvelopeMode::Default;
+            defaultEnvelopeButton.setToggleState(true, juce::NotificationType::dontSendNotification);
+            customEnvelopeButton.setToggleState(false, juce::NotificationType::dontSendNotification);
+            attackTimeSlider.setValue(0.1);
+            decayTimeSlider.setValue(10.0);
+            attackTimeSlider.setEnabled(false);
+            decayTimeSlider.setEnabled(false);
+        }
     };
     
     customEnvelopeButton.onClick = [&]() {
-        envelopeMode = EnvelopeMode::Custom;
-        defaultEnvelopeButton.setToggleState(false, juce::NotificationType::dontSendNotification);
-        customEnvelopeButton.setToggleState(true, juce::NotificationType::dontSendNotification);
+        if (envelopeMode == EnvelopeMode::Default)
+        {
+            envelopeMode = EnvelopeMode::Custom;
+            defaultEnvelopeButton.setToggleState(false, juce::NotificationType::dontSendNotification);
+            customEnvelopeButton.setToggleState(true, juce::NotificationType::dontSendNotification);
+            attackTimeSlider.setEnabled(true);
+            decayTimeSlider.setEnabled(true);
+            attackTimeSlider.setValue(attackTimeSavedValue);
+            decayTimeSlider.setValue(decayTimeSavedValue);
+        }
     };
     
 }
@@ -172,6 +189,4 @@ void SlowGear_JUCEv1AudioProcessorEditor::setToolTips()
     decayTimeSlider.setTooltip("Envelope follower decay time. Longer values are less sensitive to repeated notes. Shorter values may cause false swells.");
     defaultEnvelopeButton.setTooltip("Use default envelope follower settings.");
     customEnvelopeButton.setTooltip("Use custom envelope follower settings.");
-
-   
 }
