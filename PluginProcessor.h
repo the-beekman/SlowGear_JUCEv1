@@ -6,15 +6,13 @@
   ==============================================================================
 */
 
-//this is an edit made on my desktop
-
 #pragma once
 
 #include <JuceHeader.h>
 
 struct Settings
 {
-    float threshold { 0 }, swellTime {0}, envelopeAttackTime {0}, envelopeDecayTime {0};
+    float threshold {0}, swellTime {0}, envelopeAttackTime {0}, envelopeDecayTime {0};
 };
 
 
