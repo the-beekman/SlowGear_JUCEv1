@@ -192,8 +192,8 @@ bool SlowGear_JUCEv1AudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* SlowGear_JUCEv1AudioProcessor::createEditor()
 {
-    //return new SlowGear_JUCEv1AudioProcessorEditor (*this);
-    return new juce::GenericAudioProcessorEditor(*this);
+    return new SlowGear_JUCEv1AudioProcessorEditor (*this);
+    //return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================
@@ -235,7 +235,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SlowGear_JUCEv1AudioProcesso
     parameterLayout.add(std::make_unique<juce::AudioParameterFloat>(
         "Swell Time",//const String &parameterID,
         "Swell Time",//const String &parameterName,
-        juce::NormalisableRange<float>(0.1f, gainRampDurationSecondsMax, 0.1f, 1.f),
+        juce::NormalisableRange<float>(0.1f, gainRampDurationSecondsMax, 0.01f, 1.f),
         1.f//float defaultValue
         ) );
     
@@ -243,8 +243,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout SlowGear_JUCEv1AudioProcesso
     parameterLayout.add(std::make_unique<juce::AudioParameterFloat>(
         "Envelope Attack Time",//const String &parameterID,
         "Envelope Attack Time",//const String &parameterName,
-        juce::NormalisableRange<float>(0.01f, 500.f, 0.01f, 0.2f),//NormalisableRange<float> normalisableRange(rangeStart, rangeEnd, intervalValue, skewFactor)
-            //This skew factor sets the midpoint to be 15ms
+        juce::NormalisableRange<float>(0.01f, 100.f, 0.01f, 0.43f),//NormalisableRange<float> normalisableRange(rangeStart, rangeEnd, intervalValue, skewFactor)
+            //This skew factor sets the midpoint to be 20ms
         0.1f//float defaultValue
         ) );
     
@@ -253,7 +253,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SlowGear_JUCEv1AudioProcesso
     parameterLayout.add(std::make_unique<juce::AudioParameterFloat>(
         "Envelope Decay Time",//const String &parameterID,
         "Envelope Decay Time",//const String &parameterName,
-        juce::NormalisableRange<float>(1.f, 20.f, 0.1f, 2.2698f),//NormalisableRange<float> normalisableRange(rangeStart, rangeEnd, intervalValue, skewFactor)
+        juce::NormalisableRange<float>(1.f, 20.f, 0.01f, 2.2698f),//NormalisableRange<float> normalisableRange(rangeStart, rangeEnd, intervalValue, skewFactor)
             //This skew factor sets the midpoint to be 15ms
         10.f//float defaultValue
         ) );
