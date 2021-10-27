@@ -14,7 +14,7 @@
 
 struct Settings
 {
-    float threshold { 0 }, swellTime {0}, envelopeDecayTime {0};
+    float threshold { 0 }, swellTime {0}, envelopeAttackTime {0}, envelopeDecayTime {0};
 };
 
 
@@ -81,7 +81,6 @@ public:
     float getThresholdFromAPVTS(juce::AudioProcessorValueTreeState& apValueTreeState);
     float getSwellTimeFromAPVTS(juce::AudioProcessorValueTreeState& apValueTreeState);
     float getEnvelopeDecayTimeFromAPVTS(juce::AudioProcessorValueTreeState& apValueTreeState);
-    
     float getEnvelopeAttackTimeFromAPVTS(juce::AudioProcessorValueTreeState& apValueTreeState);
     
 private:

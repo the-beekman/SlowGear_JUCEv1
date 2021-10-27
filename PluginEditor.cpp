@@ -6,7 +6,6 @@
   ==============================================================================
 */
 
-//this is an edit made on my desktop
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
@@ -48,42 +47,8 @@ SlowGear_JUCEv1AudioProcessorEditor::~SlowGear_JUCEv1AudioProcessorEditor()
 void SlowGear_JUCEv1AudioProcessorEditor::paint (juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
-    //g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
-    g.fillAll( juce::Colour {62,62,62});
-    g.setColour (juce::Colours::white);
-    g.setFont (15.0f);
+    g.fillAll( juce::Colour {62,62,62}); //the background color
     
-
-    
-    //juce::Rectangle<int> paddedBounds, thresholdSliderBounds, timeSliderBounds, buttonBounds, attackTimeSliderBounds, decayTimeSliderBounds;
-    
-//    g.setColour(juce::Colours::black);
-//    g.fillRect(paddedBounds);
-//
-//    g.setColour(juce::Colours::blue);
-//    g.fillRect(thresholdSliderBounds);
-//
-//    g.setColour(juce::Colours::orange);
-//    g.fillRect(timeSliderBounds);
-//
-//    g.setColour(juce::Colours::lightgoldenrodyellow);
-//    g.fillRect(buttonBounds);
-//
-//    g.setColour(juce::Colours::purple);
-//    g.fillRect(attackTimeSliderBounds);
-//
-//    g.setColour(juce::Colours::green);
-//    g.fillRect(decayTimeSliderBounds);
-//
-//    g.setColour(juce::Colours::seagreen);
-//    g.fillRect( defaultEnvelopeButton.getBounds() );
-//    g.setColour(juce::Colours::purple);
-//    g.fillRect(customEnvelopeButton.getBounds());
-//
-//    g.setColour(juce::Colours::pink);
-//    g.fillRect(buttonHeader.getBounds());
-    
-
 }
 
 void SlowGear_JUCEv1AudioProcessorEditor::resized()
@@ -127,7 +92,6 @@ void SlowGear_JUCEv1AudioProcessorEditor::initializeButtonHeader(const juce::Rec
 {
     buttonHeader.setText("Envelope Follower", juce::NotificationType::dontSendNotification);
     buttonHeader.setFont(14);
-    //buttonHeader.setBounds(buttonArea.getX(), buttonArea.getY()-3, buttonArea.getWidth(), buttonHeader.getFont().getHeight()+buttonHeader.getFont().getDescent());
     buttonHeader.setBounds(buttonArea.getX(), attackTimeSlider.getY()-1, buttonArea.getWidth(), buttonHeader.getFont().getHeight()+buttonHeader.getFont().getDescent());
     buttonHeader.setJustificationType(juce::Justification::centredTop);
 }
@@ -145,13 +109,6 @@ void SlowGear_JUCEv1AudioProcessorEditor::initializeModeButtons(juce::Rectangle<
     int modeButtonHeight = 8+defaultEnvelopeButton.getLookAndFeel().getLabelFont(buttonHeader).getHeight(); //It looks good with 8
     int modeButtonWidth = defaultEnvelopeButton.getBestWidthForHeight(modeButtonHeight);
     
-    //int buttonYOffset = defaultButtonArea.getHeight()/6-modeButtonHeight/2;
-        
-//    defaultEnvelopeButton.setBounds(defaultButtonArea.getCentreX()-modeButtonWidth/2, defaultButtonArea.getCentreY()+buttonYOffset, modeButtonWidth, modeButtonHeight);
-//    customEnvelopeButton.setBounds(customButtonArea.getCentreX()-modeButtonWidth/2, customButtonArea.getCentreY()+buttonYOffset, modeButtonWidth, modeButtonHeight);
-    
-    int buttonFontSize = defaultEnvelopeButton.getLookAndFeel().getTextButtonFont(defaultEnvelopeButton, modeButtonHeight).getHeight();
-    int buttonFontAscent = defaultEnvelopeButton.getLookAndFeel().getTextButtonFont(defaultEnvelopeButton, modeButtonHeight).getAscent();
     
     defaultEnvelopeButton.setBounds(defaultButtonArea.getCentreX()-modeButtonWidth/2,
                                     defaultButtonArea.getY()+attackTimeSlider.getHeight()/2-1, //it looks nicer with -1

@@ -6,7 +6,6 @@
   ==============================================================================
 */
 
-//this is an edit made on my desktop
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
@@ -219,6 +218,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SlowGear_JUCEv1AudioProcesso
     /* PARAMETERS:
      * Threshold: The envelope threshold to activate the swell
      * Swell Time: The time it takes the swell to go from 0% to 99%
+     * Envelope Attack Time: The 0-68% rise time of the envelope follower.
      * Envelope Decay Time: The 0-68% fall time of the envelope follower. This would be set by a trimpot that is not accessible from the outside in an actual Slow Gear
      */
     juce::AudioProcessorValueTreeState::ParameterLayout parameterLayout;
@@ -281,6 +281,7 @@ Settings SlowGear_JUCEv1AudioProcessor::getAllSettings(juce::AudioProcessorValue
     settings.threshold = apValueTreeState.getRawParameterValue("Threshold dB")->load();
     settings.swellTime = apValueTreeState.getRawParameterValue("Swell Time")->load();
     settings.envelopeDecayTime = apValueTreeState.getRawParameterValue("Envelope Decay Time")->load();
+    settings.envelopeAttackTime = apValueTreeState.getRawParameterValue("Envelope Attack Time")->load();
     
     return settings;
 }
@@ -311,7 +312,7 @@ std::vector<double> SlowGear_JUCEv1AudioProcessor::prepareMasterGainRamp(double 
     //prefix f_ denotes the variable has local function scope
     
     
-    //weird stuff here - gainRampNumSamples is the CLASS variable, while sampleRate and the duration is the FUNCTION ARGUMENTS. Justification at-the-time is that I want to guaruntee that INDEPENDENT VARIABLES sampleRate and gainRampDurationSecondsMax are set correctly, since gainRampNumSamples and vector gainRamp are DEPENDENT VARIABLES on them.
+    //gainRampNumSamples is the CLASS variable, while sampleRate and the duration is the FUNCTION ARGUMENTS. Justification at-the-time is that I want to guaruntee that INDEPENDENT VARIABLES sampleRate and gainRampDurationSecondsMax are set correctly, since gainRampNumSamples and vector gainRamp are DEPENDENT VARIABLES on them.
     gainRampNumSamples = static_cast<int>(f_sampleRate*f_gainRampDurationSecondsMax);
     
     std::vector<double> f_gainRamp;

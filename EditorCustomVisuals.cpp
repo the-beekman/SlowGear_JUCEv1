@@ -179,7 +179,7 @@ void CustomRotarySlider::drawSliderTitle(juce::Graphics& g)
 
 //CustomHorizontalSliderLookAndFeel's methods
 //==============================================================================
-//void CustomHorizontalSliderLookAndFeel::drawLinearSlider (juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const juce::Slider::SliderStyle style, juce::Slider& slider)
+
 void CustomHorizontalSliderLookAndFeel::drawLinearSlider (juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const juce::Slider::SliderStyle style, juce::Slider& slider)
 {
 
@@ -255,25 +255,3 @@ void CustomHorizontalSlider::drawSliderInformation(juce::Graphics& g)
     
 }
 
-//void CustomHorizontalSlider::paint(juce::Graphics& g)
-//{
-//
-//    setSliderSnapsToMousePosition (true);
-//    auto bounds = getLocalBounds();
-//    auto range = getRange();
-//
-//    //The drawLinearSlider function that juce provides in the LookAndFeel expects us to provide the slider position AS A POINT ON THE SCREEN. We have to
-//    float sliderPostionProportional = juce::jmap(getValue(),range.getStart(), range.getEnd(), 0.0, 1.0);
-//    auto sliderPosition = sliderPostionProportional*bounds.getWidth() + bounds.getX();
-//
-//    getLookAndFeel().drawLinearSlider (g,
-//                      bounds.getX(),
-//                      bounds.getY(),
-//                      bounds.getWidth(),
-//                      bounds.getHeight(),
-//                      this.getLinearSliderPos (getValue()),
-//                      NULL, //used in the 2- and 3- value versions
-//                      NULL, //used in the 2- and 3- value versions
-//                      juce::Slider::SliderStyle::LinearHorizontal,
-//                      *this);
-//}
