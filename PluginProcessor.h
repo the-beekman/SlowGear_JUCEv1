@@ -114,8 +114,11 @@ private:
     void applyGainRamp(dataType* bufferWritePointer, int f_impulseIndex, double f_gainRampDurationSeconds);
     //Define applyGainRamp's variables here so that we don't allocate on the heap and call constructors/destructors every time processBlock() is called
     bool impulseInFrame, previousFramePartOfSwell;
-    double gainValue, rampIndexDelta;
+    double rampIndex = 0, gainValue, rampIndexDelta;
     int masterIndex0, masterIndex1;
+    
+    template<typename dataType>
+    void applyRampToBuffer(dataType* bufferWritePointer, int bufferStartIndex, int bufferEndIndex);
     
     double calculateInterpolatedGainValue(double rampIndex);
 };
