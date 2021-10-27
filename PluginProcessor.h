@@ -93,7 +93,7 @@ private:
     
     void updateSettings(juce::AudioProcessorValueTreeState& apValueTreeState);
     
-    std::vector<double> gainRamp;
+    std::vector<double> masterGainRamp;
     float gainRampSwellTimeSeconds = 1; //was 1
     
     int gainRampNumSamples;
@@ -112,4 +112,10 @@ private:
     
     template<typename dataType>
     void applyGainRamp(dataType* bufferWritePointer, int f_impulseIndex, double f_gainRampDurationSeconds);
+    //Define applyGainRamp's variables here so that we don't allocate on the heap and call constructors/destructors every time processBlock() is called
+    bool impulseInFrame, previousFramePartOfSwell;
+    double gainValue, rampIndexDelta;
+    int masterIndex0, masterIndex1;
+    
+    double calculateInterpolatedGainValue(double rampIndex);
 };

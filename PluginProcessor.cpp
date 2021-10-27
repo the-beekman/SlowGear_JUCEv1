@@ -101,7 +101,7 @@ void SlowGear_JUCEv1AudioProcessor::prepareToPlay (double sampleRate, int sample
     this->sampleRate = sampleRate;
     this->samplesPerBlock = samplesPerBlock;
     
-    gainRamp = prepareMasterGainRamp(sampleRate, this->gainRampDurationSecondsMax);
+    masterGainRamp = prepareMasterGainRamp(sampleRate, this->gainRampDurationSecondsMax);
 
     //reset the signalEnvelope to have the same size as samplesPerBlock
     signalEnvelope.clear(); //clearing the envelope may be unnecessary
@@ -308,7 +308,7 @@ float SlowGear_JUCEv1AudioProcessor::getEnvelopeAttackTimeFromAPVTS(juce::AudioP
 std::vector<double> SlowGear_JUCEv1AudioProcessor::prepareMasterGainRamp(double f_sampleRate, double f_gainRampDurationSecondsMax)
 {
     //We interpolate between samples of the master gain ramp to get the gain value for faster swell times (compared to the maximum).
-    //prefix f_ denotes the variable has local function sco pe
+    //prefix f_ denotes the variable has local function scope
     
     
     //weird stuff here - gainRampNumSamples is the CLASS variable, while sampleRate and the duration is the FUNCTION ARGUMENTS. Justification at-the-time is that I want to guaruntee that INDEPENDENT VARIABLES sampleRate and gainRampDurationSecondsMax are set correctly, since gainRampNumSamples and vector gainRamp are DEPENDENT VARIABLES on them.
@@ -402,13 +402,17 @@ int SlowGear_JUCEv1AudioProcessor::detectImpulseFromEnvelope(double f_threshold)
 template<typename dataType>
 void SlowGear_JUCEv1AudioProcessor::applyGainRamp(dataType* bufferWritePointer, int f_impulseIndex, double f_gainRampDurationSeconds)
 {
-    //For now we will calculate the gain ramp sample-by-sample.
-    static int rampIndex = 0;
+    //We use linear interpolation through the masterGainRamp, but we need an index to keep track of where we are
+    static double rampIndex = 0;
     
-    bool impulseInFrame = ( f_impulseIndex >= 0 );
-    bool previousFramePartOfSwell = !( rampIndex <= 0 || rampIndex >= gainRampNumSamples ); //If rampIndex is zero or underflow, or if rampIndex overflows, then it's not being swelled. Mind the negation ! operator
+    impulseInFrame = ( f_impulseIndex >= 0 );
+    previousFramePartOfSwell = !( rampIndex <= 0 || rampIndex >= gainRampNumSamples ); //If rampIndex is zero or underflow, or if rampIndex overflows, then it's not being swelled. Mind the negation ! operator
     
-    double gainValue;
+    rampIndexDelta = gainRampDurationSecondsMax/f_gainRampDurationSeconds; //The index we should change by when doing the linear interpolation of the master gainRamp. This is always >1
+    
+    //We are approximating gainValue = 1-std::exp( (-4.6*rampIndex) / (f_gainRampDurationSeconds*sampleRate) );
+    
+    
     // CASES:
     // 1) Impulse in frame, previous frame not part of swell
     if (impulseInFrame && !previousFramePartOfSwell)
@@ -417,11 +421,11 @@ void SlowGear_JUCEv1AudioProcessor::applyGainRamp(dataType* bufferWritePointer, 
         rampIndex = 0;
         for (int bufferIndex = f_impulseIndex; bufferIndex < samplesPerBlock; ++bufferIndex)
         {
-            if (rampIndex < gainRampNumSamples)
+            if (std::ceil(rampIndex) < gainRampNumSamples)
             {
-                gainValue = 1-std::exp( (-4.6*rampIndex) / (f_gainRampDurationSeconds*sampleRate) );
+                gainValue = calculateInterpolatedGainValue(rampIndex);
                 bufferWritePointer[bufferIndex] = gainValue * bufferWritePointer[bufferIndex];
-                ++rampIndex;
+                rampIndex += rampIndexDelta;
             }
 //            else
 //            {
@@ -438,11 +442,11 @@ void SlowGear_JUCEv1AudioProcessor::applyGainRamp(dataType* bufferWritePointer, 
         //We want to continue the previous frame's swell, then restart a new swell at impulseIndex
         for ( int bufferIndex = 0; bufferIndex < f_impulseIndex; ++bufferIndex)
         {
-            if (rampIndex < gainRampNumSamples)
+            if (std::ceil(rampIndex) < gainRampNumSamples)
             {
-                gainValue = 1-std::exp( (-4.6*rampIndex) / (f_gainRampDurationSeconds*sampleRate) );
+                gainValue = calculateInterpolatedGainValue(rampIndex);
                 bufferWritePointer[bufferIndex] = gainValue * bufferWritePointer[bufferIndex];
-                ++rampIndex;
+                rampIndex += rampIndexDelta;
             }
             //else multiply by 1
         } //end for loop (1st section)
@@ -451,11 +455,11 @@ void SlowGear_JUCEv1AudioProcessor::applyGainRamp(dataType* bufferWritePointer, 
         rampIndex = 0;
         for (int bufferIndex = f_impulseIndex; bufferIndex < samplesPerBlock; ++bufferIndex)
         {
-            if (rampIndex < gainRampNumSamples)
+            if (std::ceil(rampIndex) < gainRampNumSamples)
             {
-                gainValue = 1-std::exp( (-4.6*rampIndex) / (f_gainRampDurationSeconds*sampleRate) );
+                gainValue = calculateInterpolatedGainValue(rampIndex);
                 bufferWritePointer[bufferIndex] = gainValue * bufferWritePointer[bufferIndex];
-                ++rampIndex;
+                rampIndex += rampIndexDelta;
             } //end if
             //else multiply by 1
         } //end for loop (2nd section)
@@ -475,11 +479,11 @@ void SlowGear_JUCEv1AudioProcessor::applyGainRamp(dataType* bufferWritePointer, 
         
         for ( int bufferIndex = 0; bufferIndex < samplesPerBlock; ++bufferIndex)
         {
-            if (rampIndex < gainRampNumSamples)
+            if (std::ceil(rampIndex) < gainRampNumSamples)
             {
-                gainValue = 1-std::exp( (-4.6*rampIndex) / (f_gainRampDurationSeconds*sampleRate) );
+                gainValue = calculateInterpolatedGainValue(rampIndex);
                 bufferWritePointer[bufferIndex] = gainValue * bufferWritePointer[bufferIndex];
-                ++rampIndex;
+                rampIndex += rampIndexDelta;
             }
             //else multiply by 1
         } //end for loop (1st section)
@@ -490,6 +494,13 @@ void SlowGear_JUCEv1AudioProcessor::applyGainRamp(dataType* bufferWritePointer, 
     {
         DBG("Error in applyGainRamp: Reached unexpected case of impulseInFrame and previousFramePartOfSwell");
     }
+}
+
+double SlowGear_JUCEv1AudioProcessor::calculateInterpolatedGainValue(double rampIndex)
+{
+    masterIndex0 = std::floor(rampIndex);
+    masterIndex1 = masterIndex0+1;
+    return masterGainRamp.at(masterIndex0) + (rampIndex - masterIndex0)*(masterGainRamp.at(masterIndex1) - masterGainRamp.at(masterIndex0));
 }
 
 //==============================================================================
