@@ -2,7 +2,10 @@
 
 <JUCERPROJECT id="hvtVQd" name="SlowGear_JUCEv1" projectType="audioplug" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1"
-              cppLanguageStandard="17">
+              cppLanguageStandard="17" bundleIdentifier="com.sspro.SlowGearJUCEv1"
+              version="1.1" pluginName="SlowGearJUCEv1" pluginDesc="SlowGearJUCEv1"
+              pluginManufacturer="sspro" pluginVST3Category="Dynamics,Fx" pluginAUExportPrefix="SlowGearJUCEv1AU"
+              aaxIdentifier="com.sspro.SlowGearJUCEv1">
   <MAINGROUP id="hjs1pW" name="SlowGear_JUCEv1">
     <GROUP id="{6ECCB705-0373-DFEF-58F0-E1253905A97B}" name="Source">
       <FILE id="wNyfoL" name="PluginProcessor.cpp" compile="1" resource="0"
@@ -12,6 +15,10 @@
       <FILE id="LxHD3J" name="PluginEditor.cpp" compile="1" resource="0"
             file="Source/PluginEditor.cpp"/>
       <FILE id="ekRHKI" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
+      <FILE id="uWW7OM" name="EditorCustomVisuals.cpp" compile="1" resource="0"
+            file="Source/EditorCustomVisuals.cpp"/>
+      <FILE id="mFxlbK" name="EditorCustomVisuals.h" compile="0" resource="0"
+            file="Source/EditorCustomVisuals.h"/>
     </GROUP>
   </MAINGROUP>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
