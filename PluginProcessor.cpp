@@ -473,7 +473,8 @@ void SlowGear_JUCEv1AudioProcessor::applyRampToBuffer(dataType* bufferWritePoint
 double SlowGear_JUCEv1AudioProcessor::calculateInterpolatedGainValue(double rampIndex)
 {
     masterIndex0 = std::floor(rampIndex);
-    masterIndex1 = masterIndex0+1;
+    masterIndex1 = std::min(masterIndex0+1, static_cast<int>( masterGainRamp.capacity() )-1); //If swell time = maximum, then masterIndex0 + 1 would end up being out of range. This causes at() to throw an exception
+
     return masterGainRamp.at(masterIndex0) + (rampIndex - masterIndex0)*(masterGainRamp.at(masterIndex1) - masterGainRamp.at(masterIndex0));
 }
 
