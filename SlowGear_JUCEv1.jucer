@@ -3,7 +3,7 @@
 <JUCERPROJECT id="hvtVQd" name="SlowGear_JUCEv1" projectType="audioplug" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1"
               cppLanguageStandard="17" bundleIdentifier="com.sspro.SlowGearJUCEv1"
-              version="1.1.0" pluginName="SlowGearJUCEv1" pluginDesc="SlowGearJUCEv1"
+              version="1.1.1" pluginName="SlowGearJUCEv1" pluginDesc="SlowGearJUCEv1"
               pluginManufacturer="sspro" pluginVST3Category="Dynamics,Fx" pluginAUExportPrefix="SlowGearJUCEv1AU"
               aaxIdentifier="com.sspro.SlowGearJUCEv1">
   <MAINGROUP id="hjs1pW" name="SlowGear_JUCEv1">
